@@ -1,14 +1,14 @@
-package com.example.smartprinter.ui.dashboard;
+package com.example.smartprinter.ui.printer;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class DashboardViewModel extends ViewModel {
+public class PrinterViewModel extends ViewModel {
 
     private final MutableLiveData<String> mText;
 
-    public DashboardViewModel() {
+    public PrinterViewModel() {
         mText = new MutableLiveData<>();
         mText.setValue("Нет подключенных устройств");
     }
