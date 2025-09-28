@@ -4,3 +4,7 @@ RPi.GPIO==0.7.1
 python-dotenv==1.0.0
 fake-rpi==0.7.1
 psutil==5.9.5
+Flask-JWT-Extended
+Flask-SocketIO
+requests
+paho-mqtt
