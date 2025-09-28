@@ -1,0 +1,6 @@
+Flask==2.3.3
+Flask-CORS==4.0.0
+RPi.GPIO==0.7.1
+python-dotenv==1.0.0
+fake-rpi==0.7.1
+psutil==5.9.5
