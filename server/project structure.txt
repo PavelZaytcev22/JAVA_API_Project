@@ -1,0 +1,24 @@
+smart_home_server/
+├── app.py                      # Главный файл запуска
+├── config.py                   # Конфигурация приложения
+├── requirements.txt            # Зависимости
+├── devices.json                # Конфиг устройств
+├── api/                        # API модули
+│   ├── __init__.py
+│   ├── auth.py                 # Аутентификация
+│   ├── devices.py              # Управление устройствами
+│   └── logs.py                 # Логи
+├── models/                     # Модели данных
+│   ├── __init__.py
+│   ├── database.py             # База данных
+│   ├── user.py                 # Пользователи
+│   ├── device.py               # Устройства
+│   └── log.py                  # Логи
+├── services/                   # Бизнес-логика
+│   ├── __init__.py
+│   ├── device_manager.py       # Менеджер устройств
+│   └── mqtt_service.py         # MQTT клиент
+└── utils/                      # Вспомогательные функции
+    ├── __init__.py
+    ├── gpio_setup.py           # Настройка GPIO
+    └── logger.py               # Логирование
