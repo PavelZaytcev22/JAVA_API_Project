@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SmartPrinter"
+rootProject.name = "SmartHome"
 include(":app")
  
