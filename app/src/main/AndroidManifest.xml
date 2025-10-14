@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -12,16 +14,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartHome">
         <service
-            android:name=".ApiService"
+            android:name=".RegisterResponse"
             android:enabled="true"
             android:exported="true"></service>
+        <service
+            android:name=".RegisterRequest"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".ApiService"
+            android:enabled="true"
+            android:exported="true" />
 
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
         <activity
             android:name=".LoginActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
         <activity
             android:name=".SplashActivity"
             android:exported="true">
@@ -34,7 +44,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.SmartHome"></activity>
+            android:theme="@style/Theme.SmartHome" />
     </application>
 
 </manifest>
