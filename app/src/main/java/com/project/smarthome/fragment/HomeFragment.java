@@ -1,4 +1,4 @@
-package com.example.smarthome.ui.home;
+package com.project.smarthome.fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

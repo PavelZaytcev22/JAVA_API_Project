@@ -51,5 +51,5 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
 
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.14")
-
+    
 }

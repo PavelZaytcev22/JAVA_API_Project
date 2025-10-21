@@ -8,7 +8,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.project.smarthome.ApiService;
+import com.project.smarthome.api.ApiService;
 import com.project.smarthome.R;
 import com.project.smarthome.RegisterRequest;
 import com.project.smarthome.RegisterResponse;

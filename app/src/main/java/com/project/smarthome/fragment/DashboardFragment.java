@@ -80,34 +80,7 @@ public class DashboardFragment extends Fragment implements DeviceAdapter.OnDevic
         }, 1000);
     }
 
-    private List<Device> createDemoDevices() {
-        List<Device> devices = new ArrayList<>();
 
-        // Демо-устройства
-        Device lamp1 = new Device("1", "Лампа гостиная", "lamp", true);
-        lamp1.getState().setOn(true);
-        lamp1.getState().setBrightness(80);
-        devices.add(lamp1);
-
-        Device lamp2 = new Device("2", "Лампа спальня", "lamp", true);
-        lamp2.getState().setOn(false);
-        lamp2.getState().setBrightness(100);
-        devices.add(lamp2);
-
-        Device motionSensor = new Device("3", "Датчик движения", "motion_sensor", true);
-        motionSensor.getState().setMotion(true);
-        devices.add(motionSensor);
-
-        Device tempSensor = new Device("4", "Датчик температуры", "temp_sensor", true);
-        tempSensor.getState().setTemperature(22);
-        devices.add(tempSensor);
-
-        Device siren = new Device("5", "Сирена охраны", "siren", true);
-        siren.getState().setOn(false);
-        devices.add(siren);
-
-        return devices;
-    }
 
     private void showLoading(boolean show) {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);

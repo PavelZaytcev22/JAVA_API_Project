@@ -1,111 +1,107 @@
 package com.project.smarthome.viewmodels;
 
+import android.app.Application;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 import com.project.smarthome.models.Device;
+import com.project.smarthome.models.Home;
 import com.project.smarthome.models.Room;
 import com.project.smarthome.repositories.DeviceRepository;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-public class HomeViewModel extends ViewModel {
-
+public class HomeViewModel extends AndroidViewModel {
     private final DeviceRepository deviceRepository;
     private final MutableLiveData<List<Device>> devices = new MutableLiveData<>();
     private final MutableLiveData<List<Room>> rooms = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> connectionStatus = new MutableLiveData<>(true);
+    private final MutableLiveData<List<Home>> homes = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
+    private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
 
-    public HomeViewModel() {
-        this.deviceRepository = new DeviceRepository();
+    public HomeViewModel(Application application) {
+        super(application);
+        this.deviceRepository = new DeviceRepository(application);
     }
 
-    public LiveData<List<Device>> getDevices() {
-        return devices;
-    }
+    public LiveData<List<Device>> getDevices() { return devices; }
+    public LiveData<List<Room>> getRooms() { return rooms; }
+    public LiveData<List<Home>> getHomes() { return homes; }
+    public LiveData<Boolean> getIsLoading() { return isLoading; }
+    public LiveData<String> getErrorMessage() { return errorMessage; }
 
-    public LiveData<List<Room>> getRooms() {
-        return rooms;
-    }
+    public void loadHomes() {
+        isLoading.setValue(true);
 
-    public LiveData<Boolean> getConnectionStatus() {
-        return connectionStatus;
-    }
-
-    public void loadDevices() {
-        // TODO: Заменить на реальный API call
-        List<Device> demoDevices = createDemoDevices();
-        devices.setValue(demoDevices);
-    }
-
-    public void loadRooms() {
-        // TODO: Заменить на реальный API call
-        List<Room> demoRooms = createDemoRooms();
-        rooms.setValue(demoRooms);
-    }
-
-    public void toggleDevice(String deviceId, boolean isOn) {
-        deviceRepository.toggleDevice(deviceId, isOn)
-                .addOnSuccessListener(result -> {
-                    // Успешно - обновляем локальное состояние
-                    updateDeviceState(deviceId, isOn);
+        deviceRepository.getHomes()
+                .thenAccept(homesList -> {
+                    homes.postValue(homesList);
+                    if (!homesList.isEmpty()) {
+                        loadRooms(homesList.get(0).getId());
+                    } else {
+                        isLoading.postValue(false);
+                    }
                 })
-                .addOnFailureListener(error -> {
-                    // Ошибка - показываем уведомление
-                    connectionStatus.setValue(false);
+                .exceptionally(throwable -> {
+                    errorMessage.postValue("Ошибка загрузки домов: " + throwable.getMessage());
+                    isLoading.postValue(false);
+                    return null;
                 });
     }
 
-    public void turnAllDevices(boolean turnOn) {
-        deviceRepository.turnAllDevices(turnOn)
-                .addOnSuccessListener(result -> {
-                    // Успешно - обновляем все устройства
-                    updateAllDevicesState(turnOn);
+    public void loadRooms(int homeId) {
+        deviceRepository.getRooms(homeId)
+                .thenAccept(roomsList -> {
+                    rooms.postValue(roomsList);
+                    if (!roomsList.isEmpty()) {
+                        loadDevices(roomsList.get(0).getId());
+                    } else {
+                        isLoading.postValue(false);
+                    }
+                })
+                .exceptionally(throwable -> {
+                    errorMessage.postValue("Ошибка загрузки комнат: " + throwable.getMessage());
+                    isLoading.postValue(false);
+                    return null;
                 });
     }
 
-    public void enableSecurityMode() {
-        deviceRepository.enableSecurityMode()
-                .addOnSuccessListener(result -> {
-                    // Активируем соответствующие устройства
+    public void loadDevices(int roomId) {
+        deviceRepository.getDevices(roomId)
+                .thenAccept(devicesList -> {
+                    devices.postValue(devicesList);
+                    isLoading.postValue(false);
+                })
+                .exceptionally(throwable -> {
+                    errorMessage.postValue("Ошибка загрузки устройств: " + throwable.getMessage());
+                    isLoading.postValue(false);
+                    return null;
                 });
     }
 
-    private void updateDeviceState(String deviceId, boolean isOn) {
-        List<Device> currentDevices = devices.getValue();
-        if (currentDevices != null) {
-            for (Device device : currentDevices) {
-                if (device.getId().equals(deviceId)) {
-                    device.getState().setOn(isOn);
-                    break;
-                }
-            }
-            devices.setValue(currentDevices);
-        }
+    public void toggleDevice(int deviceId, boolean isOn) {
+        deviceRepository.toggleDevice(deviceId, isOn)
+                .thenAccept(device -> {
+                    // Обновляем устройство в списке
+                    List<Device> currentDevices = devices.getValue();
+                    if (currentDevices != null) {
+                        for (int i = 0; i < currentDevices.size(); i++) {
+                            if (currentDevices.get(i).getId() == deviceId) {
+                                currentDevices.set(i, device);
+                                break;
+                            }
+                        }
+                        devices.postValue(currentDevices);
+                    }
+                })
+                .exceptionally(throwable -> {
+                    errorMessage.postValue("Ошибка переключения устройства: " + throwable.getMessage());
+                    return null;
+                });
     }
 
-    private void updateAllDevicesState(boolean turnOn) {
-        List<Device> currentDevices = devices.getValue();
-        if (currentDevices != null) {
-            for (Device device : currentDevices) {
-                if (device.getType().equals("lamp") || device.getType().equals("siren")) {
-                    device.getState().setOn(turnOn);
-                }
-            }
-            devices.setValue(currentDevices);
-        }
-    }
-
-    private List<Device> createDemoDevices() {
-        // Возвращаем демо-устройства (как в предыдущем примере)
-        // ...
-    }
-
-    private List<Room> createDemoRooms() {
-        List<Room> rooms = new ArrayList<>();
-        rooms.add(new Room("1", "Гостиная"));
-        rooms.add(new Room("2", "Спальня"));
-        rooms.add(new Room("3", "Кухня"));
-        rooms.add(new Room("4", "Прихожая"));
-        return rooms;
+    public void refreshData() {
+        loadHomes();
     }
 }
