@@ -7,31 +7,89 @@ from .utils import setup_logging
 from .automation_service import load_scheduled_automations
 import logging
 
+# Настройка системы логирования при запуске приложения
 setup_logging()
 logger = logging.getLogger("app")
 
+# Создание таблиц в базе данных (если они не существуют)
 Base.metadata.create_all(bind=engine)
+logger.info("Таблицы базы данных инициализированы")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting MQTT client...")
+    """
+    Контекст жизненного цикла приложения
+    Управляет запуском и остановкой фоновых служб
+    """
+    # Фаза запуска приложения
+    logger.info("Запуск фоновых служб...")
+    
+    # Запуск MQTT клиента для связи с устройствами
+    logger.info("Инициализация MQTT клиента...")
     start_mqtt()
-    # load scheduled automations into APScheduler
+    
+    # Загрузка запланированных автоматизаций в планировщик
+    logger.info("Загрузка запланированных автоматизаций...")
     try:
         load_scheduled_automations()
+        logger.info("Автоматизации успешно загружены в планировщик")
     except Exception:
-        logger.exception("Failed to load scheduled automations")
+        logger.exception("Ошибка при загрузке запланированных автоматизаций")
+    
+    logger.info("Все службы успешно запущены")
+    
+    # Приложение работает
     yield
-    logger.info("Shutting down")
+    
+    # Фаза остановки приложения
+    logger.info("Завершение работы приложения...")
 
-app = FastAPI(title="Smart Home Server", version="1.0", lifespan=lifespan)
 
-app.include_router(auth_router.router)
-app.include_router(devices_router.router)
-app.include_router(rooms_router.router)
-app.include_router(autos_router.router)
-app.include_router(system_router.router)
+# Создание основного экземпляра FastAPI приложения
+app = FastAPI(
+    title="Smart Home Server",
+    version="1.0",
+    description="Серверная часть системы умного дома с REST API и MQTT",
+    lifespan=lifespan
+)
+
+# Подключение маршрутов (роутеров) API
+# Порядок важен для приоритета маршрутов
+app.include_router(auth_router.router)        # Аутентификация и авторизация
+app.include_router(devices_router.router)     # Управление устройствами
+app.include_router(rooms_router.router)       # Управление комнатами
+app.include_router(autos_router.router)       # Автоматизации и сценарии
+app.include_router(system_router.router)      # Системные endpoints
+
+logger.info("Все маршруты API успешно подключены")
+
 
 @app.get("/")
 def root():
-    return {"message":"Welcome to Smart Home Server"}
+    """
+    Корневой endpoint приложения
+    Возвращает приветственное сообщение и статус сервеса
+    """
+    return {
+        "message": "Добро пожаловать в Smart Home Server",
+        "status": "работает",
+        "version": "1.0"
+    }
+
+
+@app.get("/health")
+def health_check():
+    """
+    Endpoint для проверки здоровья приложения
+    Используется мониторингами и балансировщиками нагрузки
+    """
+    return {
+        "status": "healthy",
+        "service": "smart_home_server",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+# Добавляем импорт для health check endpoint
+from datetime import datetime

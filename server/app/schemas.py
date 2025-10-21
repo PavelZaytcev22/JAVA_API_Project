@@ -2,70 +2,124 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
 
+# =============================================================================
+# МОДЕЛИ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ (USERS)
+# =============================================================================
+
 class UserCreate(BaseModel):
-    username: str
-    password: str
-    full_name: Optional[str] = None
+    """Модель для создания нового пользователя"""
+    username: str           # Логин пользователя
+    password: str           # Пароль (будет хешироваться)
+    email: Optional[str] = None  # Email (необязательно)
+
 
 class UserOut(BaseModel):
+    """Модель для возврата данных о пользователе (без пароля)"""
     id: int
     username: str
-    full_name: Optional[str] = None
-    model_config = {"from_attributes": True}
+    email: Optional[str] = None
+    
+    model_config = {"from_attributes": True}  # Разрешает создание из ORM моделей
+
 
 class Token(BaseModel):
-    access_token: str
-    token_type: str
+    """Модель для возврата JWT токена"""
+    access_token: str      # JWT токен для аутентификации
+    token_type: str        # Тип токена (обычно "bearer")
+
+
+# =============================================================================
+# МОДЕЛИ ДЛЯ УСТРОЙСТВ (DEVICES)
+# =============================================================================
 
 class DeviceBase(BaseModel):
-    name: str
-    type: str
-    room_id: Optional[int] = None
+    """Базовая модель устройства"""
+    name: str              # Название устройства (например, "Свет в гостиной")
+    type: str              # Тип устройства (например, "light", "sensor")
+    room_id: Optional[int] = None  # ID комнаты, где находится устройство
+
 
 class DeviceCreate(DeviceBase):
-    state: Optional[str] = ""
+    """Модель для создания нового устройства"""
+    state: Optional[str] = ""  # Начальное состояние устройства
+
 
 class DeviceOut(DeviceBase):
+    """Модель для возврата данных об устройстве"""
     id: int
-    state: Optional[str] = ""
-    last_update: Optional[datetime] = None
-    home_id: int
+    state: Optional[str] = ""          # Текущее состояние устройства
+    last_update: Optional[datetime] = None  # Время последнего обновления
+    home_id: int                       # ID дома, к которому привязано устройство
+    
     model_config = {"from_attributes": True}
+
+
+# =============================================================================
+# МОДЕЛИ ДЛЯ КОМНАТ (ROOMS)
+# =============================================================================
 
 class RoomCreate(BaseModel):
-    name: str
+    """Модель для создания новой комнаты"""
+    name: str              # Название комнаты (например, "Гостиная", "Спальня")
+
 
 class RoomOut(BaseModel):
+    """Модель для возврата данных о комнате"""
     id: int
     name: str
-    home_id: int
+    home_id: int           # ID дома, к которому привязана комната
+    
     model_config = {"from_attributes": True}
+
+
+# =============================================================================
+# МОДЕЛИ ДЛЯ ДОМОВ (HOMES)
+# =============================================================================
 
 class HomeCreate(BaseModel):
-    name: str
+    """Модель для создания нового дома"""
+    name: str              # Название дома (например, "Моя квартира")
+
 
 class HomeOut(BaseModel):
+    """Модель для возврата данных о доме"""
     id: int
     name: str
-    owner_id: int
+    owner_id: int          # ID владельца дома
+    
     model_config = {"from_attributes": True}
+
+
+# =============================================================================
+# МОДЕЛИ ДЛЯ АВТОМАТИЗАЦИЙ (AUTOMATIONS)
+# =============================================================================
 
 class AutomationCreate(BaseModel):
-    name: str
-    trigger_type: str  # "device_state" or "time"
-    trigger_value: Optional[str] = None  # JSON-string
-    action: str  # JSON-string
-    schedule: Optional[str] = None
+    """Модель для создания новой автоматизации"""
+    name: str                       # Название автоматизации
+    trigger_type: str               # Тип триггера: "device_state" или "time"
+    trigger_value: Optional[str] = None  # Значение триггера в формате JSON
+    action: str                     # Действие в формате JSON
+    schedule: Optional[str] = None  # Расписание (для временных триггеров)
+
 
 class AutomationOut(BaseModel):
+    """Модель для возврата данных об автоматизации"""
     id: int
     name: str
-    enabled: bool
-    trigger_type: str
-    trigger_value: Optional[str]
-    action: str
-    schedule: Optional[str]
+    enabled: bool                   # Включена ли автоматизация
+    trigger_type: str               # Тип триггера
+    trigger_value: Optional[str]    # Значение триггера
+    action: str                     # Действие
+    schedule: Optional[str]         # Расписание
+    
     model_config = {"from_attributes": True}
 
+
+# =============================================================================
+# МОДЕЛИ ДЛЯ PUSH-УВЕДОМЛЕНИЙ
+# =============================================================================
+
 class PushTokenCreate(BaseModel):
-    token: str
+    """Модель для регистрации FCM токена для push-уведомлений"""
+    token: str  # FCM токен устройства

@@ -5,83 +5,181 @@ from .crud import get_all_automations, get_device, update_device_state
 from .database import SessionLocal
 from .notifications import send_push_to_user
 
+# Настройка логгера для модуля автоматизаций
 logger = logging.getLogger("automation")
 
+# Инициализация фонового планировщика задач
 _scheduler = BackgroundScheduler()
 _scheduler.start()
+logger.info("Фоновый планировщик автоматизаций запущен")
 
-# Called by mqtt_service.on_message after device state updated
+
 def notify_mqtt_event(db, device_id: int, state: str):
-    # Check automations with trigger_type == 'device_state'
-    autos = db.query.self.query  # avoid mypy; but better to use get_all_automations
-    # Simpler: fetch all and filter
-    autos = get_all_automations(db)
-    for a in autos:
-        if not a.enabled or a.trigger_type != "device_state":
+    """
+    Обработка событий от MQTT для запуска автоматизаций
+    Вызывается при изменении состояния устройства через MQTT
+    
+    Args:
+        db: сессия базы данных
+        device_id: ID устройства, которое изменило состояние
+        state: новое состояние устройства
+    """
+    # Получаем все автоматизации из базы данных
+    automations = get_all_automations(db)
+    
+    for automation in automations:
+        # Пропускаем отключенные автоматизации и не подходящие по типу триггера
+        if not automation.enabled or automation.trigger_type != "device_state":
             continue
-        # trigger_value is expected to be JSON string like {"device_id":123,"state":"ON"}
+            
+        # Пытаемся разобрать условие срабатывания из JSON
         try:
-            tv = json.loads(a.trigger_value or "{}")
-            if int(tv.get("device_id")) == device_id and str(tv.get("state")) == str(state):
-                logger.info("Automation matched: %s -> executing", a.name)
-                execute_action(a, db)
+            trigger_config = json.loads(automation.trigger_value or "{}")
+            trigger_device_id = int(trigger_config.get("device_id", 0))
+            trigger_state = str(trigger_config.get("state", ""))
+            
+            # Проверяем совпадение условия: устройство и состояние
+            if trigger_device_id == device_id and trigger_state == str(state):
+                logger.info("Сработала автоматизация: %s -> выполнение действия", automation.name)
+                execute_action(automation, db)
+                
         except Exception:
-            logger.exception("Failed parse trigger_value for automation %s", a.id)
+            logger.exception(
+                "Ошибка парсинга trigger_value для автоматизации %s", 
+                automation.id
+            )
+
 
 def execute_action(automation, db):
+    """
+    Выполнение действия автоматизации
+    
+    Args:
+        automation: объект автоматизации из БД
+        db: сессия базы данных
+    """
     try:
-        action = json.loads(automation.action)
-        target_id = int(action.get("device_id"))
-        new_state = str(action.get("state"))
+        # Парсим действие из JSON строки
+        action_config = json.loads(automation.action)
+        target_device_id = int(action_config.get("device_id"))
+        new_state = str(action_config.get("state"))
+        
     except Exception:
-        logger.exception("Invalid action JSON for automation %s", automation.id)
+        logger.exception(
+            "Неверный формат action JSON для автоматизации %s", 
+            automation.id
+        )
         return
-    device = get_device(db, target_id)
-    if not device:
-        logger.warning("Automation action target not found: %s", target_id)
+    
+    # Находим целевое устройство
+    target_device = get_device(db, target_device_id)
+    if not target_device:
+        logger.warning("Целевое устройство не найдено: %s", target_device_id)
         return
-    update_device_state(db, device, new_state)
-    # publish via MQTT so Pi receives (import here to avoid cycle)
+    
+    # Обновляем состояние устройства в базе данных
+    update_device_state(db, target_device, new_state)
+    
+    # Отправляем команду на устройство через MQTT
     from .mqtt_service import publish_device_state
-    publish_device_state(target_id, new_state)
-    # send push to owner(s) of the home (simple approach: find home's owner)
+    publish_device_state(target_device_id, new_state)
+    
+    # Отправляем push-уведомление владельцу дома
     try:
-        owner_id = device.home.owner_id
-        send_push_to_user(db, owner_id, f"Automation: {automation.name}", f"Action executed on {device.name}: {new_state}", data={"automation_id": automation.id})
+        owner_id = target_device.home.owner_id
+        send_push_to_user(
+            db, 
+            owner_id, 
+            f"Автоматизация: {automation.name}",
+            f"Выполнено действие на устройстве {target_device.name}: {new_state}",
+            data={"automation_id": automation.id}
+        )
     except Exception:
-        logger.exception("Failed to send push after automation")
+        logger.exception("Ошибка отправки push-уведомления после автоматизации")
 
-# schedule automations with trigger_type == 'time'
+
 def load_scheduled_automations():
+    """
+    Загрузка и настройка запланированных автоматизаций в планировщик
+    Вызывается при старте приложения
+    """
     db = SessionLocal()
     try:
-        autos = get_all_automations(db)
-        for a in autos:
-            if not a.enabled:
+        automations = get_all_automations(db)
+        
+        for automation in automations:
+            if not automation.enabled:
                 continue
-            if a.trigger_type == "time" and a.schedule:
-                # schedule is a cron expression like "*/5 * * * *" or simpler: "interval:60" seconds
-                if a.schedule.startswith("interval:"):
-                    seconds = int(a.schedule.split(":",1)[1])
-                    _scheduler.add_job(run_automation_job, "interval", seconds=seconds, args=[a.id], id=f"auto_{a.id}", replace_existing=True)
-                    logger.info("Scheduled automation %s every %s seconds", a.name, seconds)
-                else:
-                    # unsupported cron parsing in this minimal impl
-                    logger.warning("Unsupported schedule format for automation %s: %s", a.id, a.schedule)
+                
+            # Обрабатываем только временные автоматизации с расписанием
+            if automation.trigger_type == "time" and automation.schedule:
+                _schedule_automation(automation)
+                
     finally:
         db.close()
 
+
+def _schedule_automation(automation):
+    """
+    Настройка расписания для временной автоматизации
+    
+    Args:
+        automation: объект автоматизации с настройками расписания
+    """
+    schedule = automation.schedule
+    
+    # Поддержка интервальных автоматизаций (каждые N секунд)
+    if schedule.startswith("interval:"):
+        try:
+            seconds = int(schedule.split(":", 1)[1])
+            _scheduler.add_job(
+                run_automation_job,
+                "interval",
+                seconds=seconds,
+                args=[automation.id],
+                id=f"auto_{automation.id}",
+                replace_existing=True
+            )
+            logger.info(
+                "Запланирована автоматизация %s каждые %s секунд", 
+                automation.name, seconds
+            )
+            
+        except ValueError:
+            logger.error(
+                "Неверный формат интервала для автоматизации %s: %s", 
+                automation.id, schedule
+            )
+    else:
+        # В минимальной реализации cron выражения не поддерживаются
+        logger.warning(
+            "Неподдерживаемый формат расписания для автоматизации %s: %s", 
+            automation.id, schedule
+        )
+
+
 def run_automation_job(automation_id: int):
+    """
+    Задача для планировщика - выполнение автоматизации по расписанию
+    
+    Args:
+        automation_id: ID автоматизации для выполнения
+    """
     db = SessionLocal()
     try:
-        a = get_all_automations(db)
-        # find by id
-        a_obj = None
-        for x in a:
-            if x.id == automation_id:
-                a_obj = x
+        # Получаем все автоматизации и находим нужную по ID
+        all_automations = get_all_automations(db)
+        automation_to_run = None
+        
+        for automation in all_automations:
+            if automation.id == automation_id:
+                automation_to_run = automation
                 break
-        if a_obj and a_obj.enabled:
-            execute_action(a_obj, db)
+        
+        # Выполняем автоматизацию если она включена
+        if automation_to_run and automation_to_run.enabled:
+            logger.info("Запуск запланированной автоматизации: %s", automation_to_run.name)
+            execute_action(automation_to_run, db)
+            
     finally:
         db.close()
