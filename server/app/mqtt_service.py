@@ -2,70 +2,69 @@ import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion
 import logging
 from .config import MQTT_BROKER, MQTT_PORT, MQTT_BASE_TOPIC
-from .crud import get_device, update_device_state
 from .database import SessionLocal
+from .crud import get_device, update_device_state, add_sensor_history
+from .automation_service import notify_mqtt_event  # will be used to trigger automations
 import json
 
 logger = logging.getLogger("mqtt")
 
-MQTT_CLIENT = mqtt.Client(
-    client_id="smart_home_server",
-    callback_api_version=CallbackAPIVersion.VERSION2
-)
+MQTT_CLIENT = mqtt.Client(client_id="smart_home_server", callback_api_version=CallbackAPIVersion.VERSION2)
 
-def on_connect(client, userdata, flags, reasonCode, properties):
-    logger.info("MQTT connected with rc=%s", rc)
-    # subscribe to base topic
-    client.subscribe(f"{MQTT_BASE_TOPIC}/#")
-    logger.info("Subscribed to %s/#", MQTT_BASE_TOPIC)
+def on_connect(client, userdata, flags, rc, properties=None):
+    logger.info("MQTT connected rc=%s", rc)
+    topic = f"{MQTT_BASE_TOPIC}/#"
+    client.subscribe(topic)
+    logger.info("Subscribed to %s", topic)
 
 def on_message(client, userdata, msg):
     try:
-        payload = msg.payload.decode()
         topic = msg.topic
-        logger.info("MQTT message received: %s -> %s", topic, payload)
-        # Expected topic format: <base>/device/<id>/state  OR  <base>/device/<id>/cmd
+        payload = msg.payload.decode()
+        logger.info("MQTT recv: %s -> %s", topic, payload)
+        # parse topics like base/device/{id}/state or base/device/{id}/cmd
         parts = topic.split("/")
-        # Basic handling example
+        # find 'device' part
         if "device" in parts:
+            idx = parts.index("device")
             try:
-                idx = parts.index("device")
                 device_id = int(parts[idx + 1])
             except Exception:
-                logger.debug("Cannot parse device id from topic: %s", topic)
+                logger.debug("invalid device id in topic %s", topic)
                 return
-            # payload may be JSON or simple string
-            new_state = payload
-            # Update DB
+            # update DB state
             db = SessionLocal()
             try:
                 device = get_device(db, device_id)
                 if device:
-                    update_device_state(db, device, new_state)
-                    logger.info("Device %s state updated in DB to %s", device_id, new_state)
+                    # Save history
+                    add_sensor_history(db, device_id, payload)
+                    # Update current state
+                    update_device_state(db, device, payload)
+                    logger.info("Device %s state -> %s", device_id, payload)
+                    # Trigger automations that listen to MQTT events
+                    notify_mqtt_event(db, device_id, payload)
                 else:
-                    logger.warning("Received MQTT for unknown device id=%s", device_id)
+                    logger.warning("Unknown device id %s", device_id)
             finally:
                 db.close()
-    except Exception as e:
-        logger.exception("Error processing MQTT message: %s", e)
-
-MQTT_CLIENT.on_connect = on_connect
-MQTT_CLIENT.on_message = on_message
+    except Exception:
+        logger.exception("Error in on_message")
 
 def start_mqtt():
     try:
+        MQTT_CLIENT.on_connect = on_connect
+        MQTT_CLIENT.on_message = on_message
         MQTT_CLIENT.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
         MQTT_CLIENT.loop_start()
         logger.info("MQTT loop started")
-    except Exception as e:
-        logger.exception("Failed to start MQTT client: %s", e)
+    except Exception:
+        logger.exception("Failed to start MQTT")
 
 def publish_device_state(device_id: int, state: str):
-    topic = f"{MQTT_BASE_TOPIC}/device/{device_id}/state"
-    payload = state
+    topic = f"{MQTT_BASE_TOPIC}/device/{device_id}/cmd"
     try:
-        MQTT_CLIENT.publish(topic, payload)
-        logger.info("Published to %s : %s", topic, payload)
+        MQTT_CLIENT.publish(topic, state)
+        logger.info("Published %s -> %s", topic, state)
     except Exception:
-        logger.exception("Failed to publish MQTT message")
+        logger.exception("Failed publish")

@@ -23,3 +23,6 @@ PORT = int(os.getenv("PORT", "8000"))
 
 # Other
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+# 🔧 Настройки Firebase Push уведомлений
+FCM_SERVER_KEY = os.getenv("FCM_SERVER_KEY", "YOUR_FIREBASE_SERVER_KEY_HERE")
