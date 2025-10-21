@@ -10,16 +10,17 @@
         android:layout_height="wrap_content"
         android:theme="@style/Theme.SmartHome.AppBarOverlay">
 
-        <com.google.android.material.appbar.MaterialToolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="Умный дом" />
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Контейнер для фрагментов -->
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/nav_host_fragment"
+        android:id="@+id/nav_host_fragment_content_main"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -27,11 +28,23 @@
         app:navGraph="@navigation/nav_graph"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
+    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         app:menu="@menu/bottom_nav_menu" />
+
+    <!-- FAB для добавления устройств (будет показываться только на главном экране) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_device"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_add"
+        android:visibility="gone"
+        app:tint="@android:color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

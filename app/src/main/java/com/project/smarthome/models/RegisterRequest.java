@@ -1,8 +1,4 @@
-package com.project.smarthome;
-
-import android.app.Service;
-import android.content.Intent;
-import android.os.IBinder;
+package com.project.smarthome.models;
 
 
 public class RegisterRequest {
@@ -13,4 +9,6 @@ public class RegisterRequest {
         this.username = username;
         this.password = password;
     }
+    public String getUsername(){return username;}
+
 }

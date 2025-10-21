@@ -1,32 +1,28 @@
-package com.project.smarthome.fragment;
+package com.project.smarthome.ui;
 
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.project.smarthome.R;
 import com.project.smarthome.adapters.DeviceAdapter;
 import com.project.smarthome.databinding.FragmentHomeBinding;
 import com.project.smarthome.models.Device;
 import com.project.smarthome.models.Room;
 import com.project.smarthome.viewmodels.HomeViewModel;
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.search.SearchBar;
-import com.google.android.material.search.SearchView;
 import java.util.ArrayList;
 import java.util.List;
-
+import android.widget.ProgressBar;
 public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClickListener {
 
     private FragmentHomeBinding binding;
@@ -60,7 +56,6 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
 
     private void initViews() {
         setupRecyclerView();
-        setupSearch();
         setupQuickActions();
         setupViewModeToggle();
         setupFAB();
@@ -71,43 +66,28 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
         binding.devicesRecyclerView.setAdapter(deviceAdapter);
         switchViewMode(true); // Начальный режим - сетка
     }
-
-    private void setupSearch() {
-        SearchBar searchBar = binding.searchBar;
-        SearchView searchView = binding.searchView;
-
-        searchBar.setOnClickListener(v -> searchView.show());
-
-        searchView.getEditText().setOnEditorActionListener((v, actionId, event) -> {
-            String query = v.getText().toString();
-            filterDevices(query, currentRoomFilter);
-            searchView.hide();
-            return true;
-        });
-
-        searchView.addTransitionListener((searchView1, previousState, newState) -> {
-            if (newState == SearchView.TransitionState.HIDDEN) {
-                String query = searchView.getText() != null ? searchView.getText().toString() : "";
-                filterDevices(query, currentRoomFilter);
-            }
-        });
-    }
-
     private void setupQuickActions() {
-        // Включить всё
-        binding.getRoot().findViewById(R.id.quick_action_power_on).setOnClickListener(v -> {
-            homeViewModel.turnAllDevices(true);
-        });
-
-        // Выключить всё
-        binding.getRoot().findViewById(R.id.quick_action_power_off).setOnClickListener(v -> {
-            homeViewModel.turnAllDevices(false);
-        });
-
-        // Режим охраны
-        binding.getRoot().findViewById(R.id.quick_action_security).setOnClickListener(v -> {
-            enableSecurityMode();
-        });
+        // Включить всё - исправленный ID
+        View quickActionPowerOn = binding.getRoot().findViewById(R.id.quick_action_power_on);
+        if (quickActionPowerOn != null) {
+            quickActionPowerOn.setOnClickListener(v -> {
+                homeViewModel.turnAllDevices(true);
+            });
+        }
+        // Выключить всё - исправленный ID
+        View quickActionPowerOff = binding.getRoot().findViewById(R.id.quick_action_power_off);
+        if (quickActionPowerOff != null) {
+            quickActionPowerOff.setOnClickListener(v -> {
+                homeViewModel.turnAllDevices(false);
+            });
+        }
+        // Режим охраны - исправленный ID
+        View quickActionSecurity = binding.getRoot().findViewById(R.id.quick_action_security);
+        if (quickActionSecurity != null) {
+            quickActionSecurity.setOnClickListener(v -> {
+                enableSecurityMode();
+            });
+        }
     }
 
     private void setupViewModeToggle() {
@@ -122,8 +102,10 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
     }
 
     private void setupFAB() {
-        binding.fabAddDevice.setOnClickListener(v -> {
-            Navigation.findNavController(v).navigate(R.id.action_navigation_home_to_addDeviceFragment);
+        FloatingActionButton fabAddDevice = binding.fabAddDevice;
+        fabAddDevice.setOnClickListener(v -> {
+            // Исправленный action ID
+            Navigation.findNavController(v).navigate(R.id.action_home_to_addDevice);
         });
     }
 
@@ -142,26 +124,28 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
     }
 
     private void setupRoomsFilter() {
-        LinearLayout roomsContainer = binding.roomsContainer;
-        roomsContainer.removeAllViews();
+        // Очищаем контейнер комнат
+        binding.roomsContainer.removeAllViews();
 
         // Добавляем кнопку "Все"
-        addRoomButton(roomsContainer, "all", "Все", true);
+        addRoomButton("all", "Все", true);
 
+        // Добавляем кнопки для каждой комнаты
         for (Room room : rooms) {
-            addRoomButton(roomsContainer, room.getId(), room.getName(), false);
+            addRoomButton(String.valueOf(room.getId()), room.getName(), false);
         }
     }
 
-    private void addRoomButton(LinearLayout container, String roomId, String roomName, boolean isSelected) {
+    private void addRoomButton(String roomId, String roomName, boolean isSelected) {
         MaterialButton button = new MaterialButton(requireContext());
         button.setText(roomName);
         button.setCheckable(true);
         button.setChecked(isSelected);
 
+        // Теперь LinearLayout будет распознан
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
         );
         params.setMargins(0, 0, 8, 0);
         button.setLayoutParams(params);
@@ -169,28 +153,33 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
         button.setOnClickListener(v -> {
             currentRoomFilter = roomId;
             filterDevices(getCurrentSearchQuery(), roomId);
-            updateRoomButtonsSelection(container, roomId);
+            updateRoomButtonsSelection(roomId);
         });
 
-        container.addView(button);
+        binding.roomsContainer.addView(button);
     }
 
-    private void updateRoomButtonsSelection(LinearLayout container, String selectedRoomId) {
-        for (int i = 0; i < container.getChildCount(); i++) {
-            View child = container.getChildAt(i);
+    private void updateRoomButtonsSelection(String selectedRoomId) {
+        for (int i = 0; i < binding.roomsContainer.getChildCount(); i++) {
+            View child = binding.roomsContainer.getChildAt(i);
             if (child instanceof MaterialButton) {
                 MaterialButton button = (MaterialButton) child;
-                String roomId = button.getText().toString().equals("Все") ? "all" :
-                        getRoomIdFromName(button.getText().toString());
-                button.setChecked(roomId.equals(selectedRoomId));
+                String buttonRoomId = getRoomIdFromButton(button);
+                button.setChecked(buttonRoomId.equals(selectedRoomId));
             }
         }
+    }
+
+    private String getRoomIdFromButton(MaterialButton button) {
+        // Для кнопки "Все" возвращаем "all", для остальных - ID комнаты
+        return button.getText().toString().equals("Все") ? "all" :
+                getRoomIdFromName(button.getText().toString());
     }
 
     private String getRoomIdFromName(String roomName) {
         for (Room room : rooms) {
             if (room.getName().equals(roomName)) {
-                return room.getId();
+                return String.valueOf(room.getId());
             }
         }
         return "all";
@@ -217,8 +206,7 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
 
     private void loadData() {
         binding.progressBar.setVisibility(View.VISIBLE);
-        homeViewModel.loadDevices();
-        homeViewModel.loadRooms();
+        homeViewModel.loadData();
     }
 
     private void filterDevices(String query, String roomId) {
@@ -230,7 +218,7 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
                     device.getType().toLowerCase().contains(query.toLowerCase());
 
             boolean matchesRoom = roomId.equals("all") ||
-                    (device.getRoomId() != null && device.getRoomId().equals(roomId));
+                    String.valueOf(device.getRoomId()).equals(roomId);
 
             if (matchesSearch && matchesRoom) {
                 filteredDevices.add(device);
@@ -248,16 +236,20 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
     }
 
     private String getCurrentSearchQuery() {
-        return binding.searchView.getText() != null ?
-                binding.searchView.getText().toString() : "";
+        // TODO: Реализовать получение текста из SearchView
+        return "";
     }
 
     private void showEmptyState() {
         // TODO: Показать состояние "нет устройств"
+        binding.devicesRecyclerView.setVisibility(View.GONE);
+        // binding.emptyState.setVisibility(View.VISIBLE);
     }
 
     private void hideEmptyState() {
         // TODO: Скрыть состояние "нет устройств"
+        binding.devicesRecyclerView.setVisibility(View.VISIBLE);
+        // binding.emptyState.setVisibility(View.GONE);
     }
 
     private void updateConnectionStatus(boolean isConnected) {
@@ -287,9 +279,9 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
     public void onDeviceClick(Device device) {
         // Переход к детальному экрану устройства
         Bundle bundle = new Bundle();
-        bundle.putString("device_id", device.getId());
+        bundle.putInt("device_id", device.getId());
         Navigation.findNavController(requireView())
-                .navigate(R.id.action_navigation_home_to_deviceDetailFragment, bundle);
+                .navigate(R.id.action_home_to_deviceDetail, bundle);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.project.smarthome.activity;
+package com.project.smarthome.models;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,11 +8,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.project.smarthome.api.ApiService;
+import com.project.smarthome.LoginActivity;
 import com.project.smarthome.R;
-import com.project.smarthome.RegisterRequest;
-import com.project.smarthome.RegisterResponse;
-
+import com.project.smarthome.api.ApiService;
+import com.project.smarthome.utils.SharedPrefManager;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -74,24 +73,58 @@ public class RegisterActivity extends AppCompatActivity {
             // --- Отправка данных ---
             RegisterRequest request = new RegisterRequest(username, password);
 
-            apiService.registerUser(request).enqueue(new Callback<RegisterResponse>() {
+            apiService.register(request).enqueue(new Callback<RegisterResponse>() {
                 @Override
                 public void onResponse(Call<RegisterResponse> call, Response<RegisterResponse> response) {
-                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                        Toast.makeText(RegisterActivity.this, "Регистрация успешна", Toast.LENGTH_SHORT).show();
+                    if (response.isSuccessful() && response.body() != null) {
+                        RegisterResponse registerResponse = response.body();
 
-                        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                        intent.putExtra("server_url", serverUrl);
-                        startActivity(intent);
-                        finish();
+                        // Проверяем разные возможные форматы успешного ответа
+                        boolean isSuccess = false;
+
+                        if (registerResponse.getAccessToken() != null && !registerResponse.getAccessToken().isEmpty()) {
+                            // Формат 1: есть access_token
+                            SharedPrefManager.getInstance(RegisterActivity.this).saveToken(registerResponse.getAccessToken());
+                            isSuccess = true;
+                        } else if (registerResponse.isSuccess()) {
+                            // Формат 2: есть флаг success
+                            isSuccess = true;
+                        } else if (registerResponse.getMessage() != null && registerResponse.getMessage().contains("success")) {
+                            // Формат 3: сообщение об успехе
+                            isSuccess = true;
+                        }
+
+                        if (isSuccess) {
+                            Toast.makeText(RegisterActivity.this, "Регистрация успешна", Toast.LENGTH_SHORT).show();
+
+                            // Переходим на логин или сразу в приложение
+                            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                            intent.putExtra("username", request.getUsername());
+                            intent.putExtra("server_url", serverUrl);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            Toast.makeText(RegisterActivity.this, "Регистрация не удалась", Toast.LENGTH_SHORT).show();
+                        }
+
                     } else {
-                        Toast.makeText(RegisterActivity.this, "Ошибка регистрации", Toast.LENGTH_SHORT).show();
+                        // Обработка ошибок HTTP
+                        String errorMessage = "Ошибка регистрации";
+                        if (response.errorBody() != null) {
+                            try {
+                                errorMessage += ": " + response.errorBody().string();
+                            } catch (Exception e) {
+                                errorMessage += " (код: " + response.code() + ")";
+                            }
+                        }
+                        Toast.makeText(RegisterActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<RegisterResponse> call, Throwable t) {
                     Toast.makeText(RegisterActivity.this, "Ошибка соединения: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                    t.printStackTrace(); // Для отладки
                 }
             });
         });

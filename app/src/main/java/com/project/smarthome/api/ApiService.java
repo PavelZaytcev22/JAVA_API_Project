@@ -1,5 +1,7 @@
 package com.project.smarthome.api;
 
+import com.project.smarthome.models.RegisterRequest;
+import com.project.smarthome.models.RegisterResponse;
 import com.project.smarthome.models.*;
 import retrofit2.Call;
 import retrofit2.http.*;
@@ -10,7 +12,7 @@ public interface ApiService {
 
     // Auth endpoints
     @POST("auth/register")
-    Call<LoginResponse> register(@Body LoginRequest request);
+    Call<RegisterResponse> register(@Body RegisterRequest request); // Изменили имя метода
 
     @POST("auth/login")
     Call<LoginResponse> login(@Body LoginRequest request);

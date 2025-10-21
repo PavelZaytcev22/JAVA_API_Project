@@ -1,4 +1,4 @@
-package com.project.smarthome.activity;
+package com.project.smarthome;
 
 import android.os.Bundle;
 
@@ -7,8 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Handler;
 import android.widget.ImageView;
-
-import com.project.smarthome.R;
 
 public class SplashActivity extends AppCompatActivity {
 

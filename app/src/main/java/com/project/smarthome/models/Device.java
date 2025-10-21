@@ -1,7 +1,7 @@
 package com.project.smarthome.models;
 
-public class Device {public class Device {
-    private String id;
+public class Device {
+    private int id;
     private String name;
     private String type;
     private boolean is_online;
@@ -12,7 +12,7 @@ public class Device {public class Device {
         this.state = new DeviceState();
     }
 
-    public Device(String id, String name, String type, boolean is_online, int room_id) {
+    public Device(int id, String name, String type, boolean is_online, int room_id) {
         this.id = id;
         this.name = name;
         this.type = type;
@@ -41,30 +41,3 @@ public class Device {public class Device {
     public void setState(DeviceState state) { this.state = state; }
 }
 
-// Класс для хранения состояния устройства
-class DeviceState {
-    private boolean on;
-    private int brightness; // 0-100%
-    private int temperature; // для датчиков температуры
-    private boolean motion; // для датчиков движения
-
-    public DeviceState() {
-        this.on = false;
-        this.brightness = 100;
-        this.temperature = 22;
-        this.motion = false;
-    }
-
-    // Getters and Setters
-    public boolean isOn() { return on; }
-    public void setOn(boolean on) { this.on = on; }
-
-    public int getBrightness() { return brightness; }
-    public void setBrightness(int brightness) { this.brightness = brightness; }
-
-    public int getTemperature() { return temperature; }
-    public void setTemperature(int temperature) { this.temperature = temperature; }
-
-    public boolean isMotion() { return motion; }
-    public void setMotion(boolean motion) { this.motion = motion; }
-}

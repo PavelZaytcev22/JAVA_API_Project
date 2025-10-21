@@ -1,4 +1,4 @@
-package com.project.smarthome.fragment;
+package com.project.smarthome.ui;
 
 
 import android.os.Bundle;

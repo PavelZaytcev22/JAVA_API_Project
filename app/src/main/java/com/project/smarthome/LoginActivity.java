@@ -1,4 +1,4 @@
-package com.project.smarthome.activity;
+package com.project.smarthome;
 
 import android.os.Bundle;
 
@@ -10,7 +10,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.project.smarthome.R;
+import com.project.smarthome.models.RegisterActivity;
 
 
 public class LoginActivity extends AppCompatActivity {
