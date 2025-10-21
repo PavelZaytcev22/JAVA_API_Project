@@ -14,9 +14,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartHome">
         <service
-            android:name=".RegisterResponse"
+            android:name=".models.Device"
             android:enabled="true"
             android:exported="true"></service>
+        <service
+            android:name=".RegisterResponse"
+            android:enabled="true"
+            android:exported="true" />
         <service
             android:name=".RegisterRequest"
             android:enabled="true"
@@ -27,13 +31,13 @@
             android:exported="true" />
 
         <activity
-            android:name=".RegisterActivity"
+            android:name=".activity.RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".activity.LoginActivity"
             android:exported="true" />
         <activity
-            android:name=".SplashActivity"
+            android:name=".activity.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -42,7 +46,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.SmartHome" />
     </application>

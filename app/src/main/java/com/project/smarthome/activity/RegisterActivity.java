@@ -1,4 +1,4 @@
-package com.project.smarthome;
+package com.project.smarthome.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,6 +7,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.project.smarthome.ApiService;
+import com.project.smarthome.R;
+import com.project.smarthome.RegisterRequest;
+import com.project.smarthome.RegisterResponse;
 
 import retrofit2.Call;
 import retrofit2.Callback;
