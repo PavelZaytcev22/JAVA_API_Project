@@ -7,9 +7,24 @@ import json
 def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
+
 def create_user(db: Session, user_in: schemas.UserCreate):
-    hashed = auth.get_password_hash(user_in.password)
-    db_user = models.User(username=user_in.username, hashed_password=hashed, full_name=user_in.full_name)
+    """
+    Создание нового пользователя с безопасным хешированием пароля (bcrypt <= 72 байт)
+    """
+    # Усечение пароля до 72 байт
+    max_bytes = 72
+    password_bytes = user_in.password.encode("utf-8")[:max_bytes]  # берем первые 72 байта
+    # Декодируем обратно в строку, игнорируя обрезанные байты в середине символа
+    password_safe = password_bytes.decode("utf-8", "ignore")
+
+    hashed = auth.pwd_context.hash(password_safe)
+
+    db_user = models.User(
+        username=user_in.username,
+        password_hash=hashed,
+        email=getattr(user_in, "full_name", None)
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
