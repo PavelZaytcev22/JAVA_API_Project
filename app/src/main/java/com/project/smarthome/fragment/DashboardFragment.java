@@ -1,4 +1,4 @@
-package com.project.smarthome.fragments;
+package com.project.smarthome.fragment;
 
 import android.os.Bundle;
 import android.view.*;

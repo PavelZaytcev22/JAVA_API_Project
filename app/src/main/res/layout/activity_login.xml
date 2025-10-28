@@ -27,7 +27,9 @@
             android:id="@+id/editServerUrl"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="https://smart-home-x8tm.onrender.com/"
             android:hint="Server IP (например http://192.168.1.10:5000)" />
+
 
         <EditText
             android:id="@+id/editUsername"

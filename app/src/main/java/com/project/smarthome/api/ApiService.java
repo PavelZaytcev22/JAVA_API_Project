@@ -11,11 +11,11 @@ import java.util.List;
 public interface ApiService {
 
     // Auth endpoints
-    @POST("auth/register")
+    @POST("/api/auth/register")
     Call<RegisterResponse> register(@Body RegisterRequest request); // Изменили имя метода
 
-    @POST("auth/login")
-    Call<LoginResponse> login(@Body LoginRequest request);
+    @POST("api/auth/token")
+    Call<TokenResponse> login(@Body LoginRequest request);
 
     // Homes endpoints
     @GET("homes/")
