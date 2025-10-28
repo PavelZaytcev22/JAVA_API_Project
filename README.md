@@ -20,23 +20,7 @@
 
 ## 🧩 Архитектура системы
 
-📱 Android App
-     │  (HTTP / HTTPS)
-     ▼
-🌐 FastAPI Server
- ├── Auth (JWT)
- ├── REST API
- ├── MQTT client
- ├── Automation Engine
- ├── SQLite Database
- └── Push Notifications (FCM)
-     │
-     ▼
-🍓 Raspberry Pi
- ├── Device Manager
- ├── State Storage (YAML)
- ├── Automation triggers
- └── MQTT Publisher/Subscriber
+Raspberry Pi ↔ MQTT ↔ Сервер (FastAPI) ↔ REST API ↔ Android
 
 ---
 
