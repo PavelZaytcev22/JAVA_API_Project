@@ -14,8 +14,10 @@ import com.project.smarthome.models.LoginRequest;
 import com.project.smarthome.models.TokenResponse;
 import com.project.smarthome.utils.SharedPrefManager;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -26,6 +28,8 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnLogin;
     private TextView textRegister;
     private ApiService apiService;
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,56 +47,61 @@ public class LoginActivity extends AppCompatActivity {
             finish();
         });
 
-        btnLogin.setOnClickListener(v -> {
-            String serverUrl = editServerUrl.getText().toString().trim();
-            String username = editUsername.getText().toString().trim();
-            String password = editPassword.getText().toString().trim();
+        btnLogin.setOnClickListener(v -> loginUser());
+    }
 
-            if (serverUrl.isEmpty() || username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Заполните все обязательные поля", Toast.LENGTH_SHORT).show();
-                return;
+    private void loginUser() {
+        String serverUrl = editServerUrl.getText().toString().trim();
+        String username = editUsername.getText().toString().trim();
+        String password = editPassword.getText().toString().trim();
+
+        if (serverUrl.isEmpty() || username.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Заполните все обязательные поля", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(serverUrl + "/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        apiService = retrofit.create(ApiService.class);
+
+        LoginRequest request = new LoginRequest(username, password);
+
+        // Асинхронный вызов через Executor
+        executor.execute(() -> {
+            try {
+                Response<TokenResponse> response = apiService.login(request).execute(); // синхронный вызов в отдельном потоке
+                runOnUiThread(() -> handleLoginResponse(response, serverUrl, username));
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(LoginActivity.this, "Ошибка соединения: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                });
             }
-
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(serverUrl + "/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-
-            apiService = retrofit.create(ApiService.class);
-
-            LoginRequest request = new LoginRequest(username, password);
-
-            apiService.login(request).enqueue(new Callback<TokenResponse>() {
-                @Override
-                public void onResponse(Call<TokenResponse> call, Response<TokenResponse> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        String token = response.body().getAccessToken();
-
-                        SharedPrefManager.getInstance(LoginActivity.this).saveToken(token);
-                        SharedPrefManager.getInstance(LoginActivity.this).saveServerUrl(serverUrl);
-                        SharedPrefManager.getInstance(LoginActivity.this).saveUsername(username);
-
-                        Toast.makeText(LoginActivity.this, "Вход успешен!", Toast.LENGTH_SHORT).show();
-
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
-                    } else {
-//                        Toast.makeText(LoginActivity.this, "Неверные данные", Toast.LENGTH_LONG).show();
-                        Toast.makeText(LoginActivity.this, "Временно заглушим до отладки регистратора", Toast.LENGTH_SHORT).show();
-
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<TokenResponse> call, Throwable t) {
-                    Toast.makeText(LoginActivity.this, "Ошибка соединения: " + t.getMessage(), Toast.LENGTH_LONG).show();
-                    t.printStackTrace();
-                }
-            });
         });
+    }
+
+    private void handleLoginResponse(Response<TokenResponse> response, String serverUrl, String username) {
+        if (response.isSuccessful() && response.body() != null) {
+            String token = response.body().getAccessToken();
+
+            SharedPrefManager.getInstance(LoginActivity.this).saveToken(token);
+            SharedPrefManager.getInstance(LoginActivity.this).saveServerUrl(serverUrl);
+            SharedPrefManager.getInstance(LoginActivity.this).saveUsername(username);
+
+            Toast.makeText(LoginActivity.this, "Вход успешен!", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            finish();
+        } else {
+            Toast.makeText(LoginActivity.this, "Неверные данные или ошибка сервера", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executor.shutdown(); // корректное завершение Executor
     }
 }
