@@ -1,15 +1,11 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Базовая тема - гарантированно работает -->
-    <style name="Theme.SmartHome" parent="Theme.Material3.Light">
+    <style name="Theme.SmartHome" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryDark">@color/purple_700</item>
-        <item name="colorAccent">@color/teal_200</item>
-        <item name="windowActionBar">true</item>
-        <item name="windowNoTitle">false</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="android:statusBarColor">@color/purple_700</item>
     </style>
 
-    <!-- Стили для AppBar -->
     <style name="Theme.SmartHome.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
     <style name="Theme.SmartHome.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

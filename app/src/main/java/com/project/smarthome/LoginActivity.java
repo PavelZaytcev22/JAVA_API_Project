@@ -67,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
 
         apiService = retrofit.create(ApiService.class);
 
-        LoginRequest request = new LoginRequest(username, password);
+        LoginRequest request = new LoginRequest(username, password,"user@mail.ru");
 
         // Асинхронный вызов через Executor
         executor.execute(() -> {
@@ -95,7 +95,9 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             finish();
         } else {
-            Toast.makeText(LoginActivity.this, "Неверные данные или ошибка сервера", Toast.LENGTH_SHORT).show();
+            if (!response.isSuccessful())
+                Toast.makeText(LoginActivity.this, "провал" + response.isSuccessful(), Toast.LENGTH_SHORT).show();
+
         }
     }
 
