@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion
 import logging
+import ssl
 from .config import MQTT_BROKER, MQTT_PORT, MQTT_BASE_TOPIC
 from .database import SessionLocal
 from .crud import get_device, update_device_state, add_sensor_history
@@ -91,23 +92,37 @@ def _update_device_in_database(device_id: int, payload: str):
 
 
 def start_mqtt():
-    """
-    Запускает MQTT клиент и подключается к брокеру
-    """
+    """Запускает MQTT клиент с TLS аутентификацией"""
     try:
         # Настройка callback функций
         MQTT_CLIENT.on_connect = on_connect
         MQTT_CLIENT.on_message = on_message
         
-        # Подключение к брокеру
+        # 🔐 НАСТРОЙКА TLS
+        MQTT_CLIENT.tls_set(
+            ca_certs=None,
+            certfile=None,
+            keyfile=None,
+            cert_reqs=ssl.CERT_REQUIRED,
+            tls_version=ssl.PROTOCOL_TLS,
+            ciphers=None
+        )
+        
+        # 🔐 Отключаем проверку имени хоста (может понадобиться для некоторых облачных провайдеров)
+        MQTT_CLIENT.tls_insecure_set(False)  # True только для тестирования!
+        
+        # 🔐 Аутентификация
+        MQTT_CLIENT.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+        
+        # Подключение к EMQX Cloud с TLS
         MQTT_CLIENT.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
         
-        # Запуск фонового цикла обработки сообщений
+        # Запуск фонового цикла
         MQTT_CLIENT.loop_start()
-        logger.info("MQTT клиент успешно запущен")
+        logger.info("🚀 MQTT клиент успешно запущен с TLS подключением к EMQX Cloud")
         
-    except Exception:
-        logger.exception("Ошибка при запуске MQTT клиента")
+    except Exception as e:
+        logger.exception(f"❌ Ошибка при запуске MQTT клиента: {e}")
 
 
 def publish_device_state(device_id: int, state: str):

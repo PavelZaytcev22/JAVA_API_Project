@@ -45,21 +45,22 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 # НАСТРОЙКИ MQTT БРОКЕРА
 # =============================================================================
 
-MQTT_BROKER = os.getenv("MQTT_BROKER", "broker.hivemq.com")
+MQTT_BROKER = os.getenv("MQTT_BROKER", "example.com")
 """
-Адрес MQTT брокера:
-- По умолчанию: публичный брокер HiveMQ (только для разработки)
-- Для продакшена: использовать собственный брокер с аутентификацией
+Адрес MQTT брокера
 """
 
-MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
+MQTT_PORT = int(os.getenv("MQTT_PORT", "8883"))
 """
 Порт MQTT брокера:
 - 1883: стандартный порт MQTT (без шифрования)
 - 8883: порт для MQTT over SSL/TLS
 """
 
-MQTT_BASE_TOPIC = os.getenv("MQTT_BASE_TOPIC", "smart_home/demo")
+MQTT_USERNAME = os.getenv("MQTT_USERNAME", "user")
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "password")
+
+MQTT_BASE_TOPIC = os.getenv("MQTT_BASE_TOPIC", "smart_home/production")
 """
 Базовый префикс для всех MQTT топиков:
 - Формат: project/environment/...
