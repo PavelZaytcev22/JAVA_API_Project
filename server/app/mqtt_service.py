@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion
 import logging
 import ssl
-from .config import MQTT_BROKER, MQTT_PORT, MQTT_BASE_TOPIC
+from .config import MQTT_BROKER, MQTT_PORT, MQTT_BASE_TOPIC, MQTT_USERNAME, MQTT_PASSWORD
 from .database import SessionLocal
 from .crud import get_device, update_device_state, add_sensor_history
 from .automation_service import notify_mqtt_event  # для запуска автоматизаций
