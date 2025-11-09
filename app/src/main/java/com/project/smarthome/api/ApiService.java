@@ -11,7 +11,7 @@ import java.util.List;
 public interface ApiService {
 
     // Auth endpoints
-    @POST("/api/auth/register")
+    @POST("api/auth/register")
     Call<RegisterResponse> register(@Body RegisterRequest request); // Изменили имя метода
 
     @POST("api/auth/token")

@@ -39,7 +39,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private boolean checkUserLoggedIn() {
-        // 🔹 Пример: проверяем флаг в SharedPreferences (временно вместо Firebase)
+        // 🔹 Пример: проверяем флаг в SharedPreferences
         return getSharedPreferences("auth_prefs", MODE_PRIVATE)
                 .getBoolean("is_logged_in", false);
     }
