@@ -1,49 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".RegisterActivity">
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+
+    <LinearLayout
+        android:id="@+id/container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:orientation="vertical"
         android:gravity="center"
         android:padding="24dp"
-        tools:context=".RegisterActivity">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
+            android:id="@+id/textTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="SmartHome \nРегистрация"
+            android:text="SmartHome\nРегистрация"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="32dp" />
-
-        <EditText
-            android:id="@+id/editServerUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="https://smart-home-x8tm.onrender.com"
-            android:hint="Server IP (например http://192.168.1.10:5000)" />
+            android:layout_marginBottom="32dp"
+            android:gravity="center"/>
 
         <EditText
             android:id="@+id/editUsername"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Username"
-            android:layout_marginTop="12dp" />
+            android:layout_marginTop="8dp"/>
 
         <EditText
             android:id="@+id/editEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Email"
-            android:layout_marginTop="12dp"
-            android:inputType="textEmailAddress" />
+            android:inputType="textEmailAddress"
+            android:layout_marginTop="8dp"/>
 
         <EditText
             android:id="@+id/editPassword"
@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:hint="Password"
             android:inputType="textPassword"
-            android:layout_marginTop="12dp" />
+            android:layout_marginTop="8dp"/>
 
         <EditText
             android:id="@+id/editConfirmPassword"
@@ -59,14 +59,14 @@
             android:layout_height="wrap_content"
             android:hint="Confirm Password"
             android:inputType="textPassword"
-            android:layout_marginTop="12dp" />
+            android:layout_marginTop="8dp"/>
 
         <Button
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Зарегистрироваться"
-            android:layout_marginTop="20dp" />
+            android:layout_marginTop="16dp"/>
 
         <TextView
             android:id="@+id/textLoginLink"
@@ -74,8 +74,15 @@
             android:layout_height="wrap_content"
             android:text="Уже есть аккаунт? Войти"
             android:textColor="@android:color/holo_blue_dark"
-            android:layout_marginTop="16dp" />
-    </LinearLayout>
+            android:layout_marginTop="12dp"
+            android:gravity="center"/>
 
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -25,12 +25,7 @@
             android:textSize="24sp"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/editServerUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Server IP (например http://192.168.1.10:5000)"
-            android:text="https://smart-home-x8tm.onrender.com" />
+
 
 
         <EditText
@@ -54,6 +49,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="Войти" />
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:layout_marginTop="16dp"
+            style="?android:attr/progressBarStyleLarge"/>
+
 
         <TextView
             android:id="@+id/textRegister"
