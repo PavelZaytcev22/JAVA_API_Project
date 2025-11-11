@@ -1,7 +1,7 @@
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from . import models, schemas, auth
 from datetime import datetime
-import json
 
 # =============================================================================
 # ФУНКЦИИ ДЛЯ РАБОТЫ С ПОЛЬЗОВАТЕЛЯМИ (USERS)
@@ -74,6 +74,22 @@ def get_push_tokens_for_user(db: Session, user_id: int):
 # ФУНКЦИИ ДЛЯ РАБОТЫ С ДОМАМИ И КОМНАТАМИ
 # =============================================================================
 
+def add_home_member(db: Session, home_id: int, user_id: int):
+    """Добавление пользователя в дом (без указания роли)"""
+    existing = db.query(models.HomeMember).filter(
+        models.HomeMember.home_id == home_id,
+        models.HomeMember.user_id == user_id
+    ).first()
+    
+    if existing:
+        return existing
+    
+    home_member = models.HomeMember(home_id=home_id, user_id=user_id)
+    db.add(home_member)
+    db.commit()
+    db.refresh(home_member)
+    return home_member
+
 def create_home(db: Session, owner_id: int, home_in: schemas.HomeCreate):
     """
     Создание нового дома для пользователя
@@ -82,14 +98,27 @@ def create_home(db: Session, owner_id: int, home_in: schemas.HomeCreate):
     db.add(home)
     db.commit()
     db.refresh(home)
-    return home
 
+    # Создатель автоматически становится членом
+    add_home_member(db, home.id, owner_id)
+
+    return home
 
 def get_homes_for_user(db: Session, owner_id: int):
     """
     Получение всех домов пользователя
     """
     return db.query(models.Home).filter(models.Home.owner_id == owner_id).all()
+
+def get_home(db: Session, home_id: int):
+    """Получение дома по ID"""
+    return db.query(models.Home).filter(models.Home.id == home_id).first()
+
+def get_user_homes(db: Session, user_id: int):
+    """Получение всех домов пользователя (где он член)"""
+    return db.query(models.Home).join(models.HomeMember).filter(
+        models.HomeMember.user_id == user_id
+    ).all()
 
 
 def create_room(db: Session, home_id: int, room_in: schemas.RoomCreate):
@@ -214,3 +243,43 @@ def set_automation_enabled(db: Session, automation: models.Automation, enabled: 
     db.commit()
     db.refresh(automation)
     return automation
+
+
+
+def get_database_stats(db: Session):
+    """Получение статистики базы данных"""
+    from sqlalchemy import text
+    
+    stats = {}
+    
+    # Получаем список всех таблиц
+    tables = db.execute(text("SELECT name FROM sqlite_master WHERE type='table'")).fetchall()
+    
+    for table in tables:
+        table_name = table[0]
+        count = db.execute(text(f"SELECT COUNT(*) FROM {table_name}")).scalar()
+        stats[table_name] = count
+        
+    return stats
+
+def execute_raw_sql(db: Session, sql: str):
+    """Выполнение произвольного SQL запроса (ОПАСНО!)"""
+    try:
+        result = db.execute(text(sql))
+        
+        if sql.strip().lower().startswith('select'):
+            # Для SELECT возвращаем результаты
+            columns = result.keys()
+            rows = result.fetchall()
+            return {
+                "columns": list(columns),
+                "rows": [dict(zip(columns, row)) for row in rows]
+            }
+        else:
+            # Для других запросов - коммитим изменения
+            db.commit()
+            return {"status": "executed", "rows_affected": result.rowcount}
+            
+    except Exception as e:
+        db.rollback()
+        raise e

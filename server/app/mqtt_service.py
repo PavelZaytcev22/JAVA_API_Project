@@ -6,7 +6,6 @@ from .config import MQTT_BROKER, MQTT_PORT, MQTT_BASE_TOPIC, MQTT_USERNAME, MQTT
 from .database import SessionLocal
 from .crud import get_device, update_device_state, add_sensor_history
 from .automation_service import notify_mqtt_event  # для запуска автоматизаций
-import json
 
 # Настройка логирования
 logger = logging.getLogger("mqtt")

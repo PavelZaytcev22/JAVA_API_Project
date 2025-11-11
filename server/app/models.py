@@ -14,27 +14,43 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(100), unique=True, nullable=False)      # Уникальное имя пользователя
     password_hash = Column(String(255), nullable=False)              # Хеш пароля
-    email = Column(String(255), unique=True, nullable=True)          # Email (необязательно)
+    email = Column(String(255), unique=True, nullable=True) 
+    role = Column(String(50), default="user")  # 🔐 'admin', 'user'         # Email (необязательно)
     created_at = Column(DateTime, default=datetime.utcnow)           # Дата регистрации
 
-    # Связи с другими таблицами
-    homes = relationship("Home", back_populates="owner")             # Дома пользователя
+    # Обновленные связи
+    owned_homes = relationship("Home", back_populates="owner")  # Дома где пользователь владелец
+    home_memberships = relationship("HomeMember", back_populates="user")  # Членство в домах
 
 
 class Home(Base):
-    """
-    Модель дома/квартиры
-    Основная единица организации умного дома
-    """
     __tablename__ = "homes"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)                       # Название дома
-    owner_id = Column(Integer, ForeignKey("users.id"))               # Владелец дома
+    name = Column(String(100), nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"))  # Главный владелец
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Связи с другими таблицами
-    owner = relationship("User", back_populates="homes")             # Владелец
-    rooms = relationship("Room", back_populates="home")              # Комнаты в доме
+    # Связи
+    owner = relationship("User", back_populates="owned_homes")
+    members = relationship("HomeMember", back_populates="home")
+    rooms = relationship("Room", back_populates="home")
+
+class HomeMember(Base):
+    """
+    Таблица для связи пользователей и домов (многие-ко-многим)
+    Определяет права доступа пользователей к домам
+    """
+    __tablename__ = "home_members"
+
+    id = Column(Integer, primary_key=True, index=True)
+    home_id = Column(Integer, ForeignKey("homes.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
+    joined_at = Column(DateTime, default=datetime.utcnow)
+
+    # Связи
+    home = relationship("Home", back_populates="members")
+    user = relationship("User", back_populates="home_memberships")           # Комнаты в доме
 
 
 class Room(Base):

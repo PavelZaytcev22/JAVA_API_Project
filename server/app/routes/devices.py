@@ -14,6 +14,7 @@ def create_device(
     home_id: int,
     device_in: schemas.DeviceCreate,
     current_user = Depends(get_current_user),
+    # home_member = Depends(auth.require_home_access()),  # Любой член дома может создавать
     db: Session = Depends(get_db)
 ):
     """
@@ -45,6 +46,7 @@ def create_device(
 def list_devices(
     home_id: int,
     current_user = Depends(get_current_user),
+    # home_member = Depends(auth.require_home_access()),  # Любой член дома может просматривать
     db: Session = Depends(get_db)
 ):
     """
@@ -106,6 +108,11 @@ def device_action(
     
     # TODO: реализовать проверку прав доступа - пользователь должен иметь доступ к дому устройства
     
+    # Проверяем, что пользователь имеет доступ к дому устройства
+    home_member = crud.get_home_member(db, device.home_id, current_user.id)
+    if not home_member:
+        raise HTTPException(status_code=403, detail="Нет доступа к устройству")
+
     # Обновляем состояние устройства в базе данных
     updated_device = crud.update_device_state(db, device, new_state)
     

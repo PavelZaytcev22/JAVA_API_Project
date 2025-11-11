@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from . import models, database, config, crud, schemas
+from . import models, database, config, crud
 
 # =============================================================================
 # НАСТРОЙКИ БЕЗОПАСНОСТИ И АУТЕНТИФИКАЦИИ
@@ -165,3 +165,94 @@ def get_current_user(
         raise credentials_exception
 
     return user
+
+def authenticate_super_admin(username: str, password: str) -> bool:
+    """
+    Аутентификация супер-администратора через переменные окружения
+    """
+    return (username == config.SUPER_ADMIN_USERNAME and 
+            password == config.SUPER_ADMIN_PASSWORD)
+
+def get_super_admin(
+    token: str = Depends(oauth2_scheme)
+):
+    """
+    Проверяет, является ли пользователь супер-администратором
+    через JWT токен
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Неверные учетные данные супер-администратора",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    payload = decode_access_token(token)
+    if payload is None:
+        raise credentials_exception
+
+    username: str = payload.get("sub")
+    role: str = payload.get("role", "")
+    
+    if username != config.SUPER_ADMIN_USERNAME or role != "super_admin":
+        raise credentials_exception
+
+    # Возвращаем объект супер-админа (не из БД)
+    return {
+        "id": 0,  # Специальный ID для супер-админа
+        "username": config.SUPER_ADMIN_USERNAME,
+        "email": config.SUPER_ADMIN_EMAIL,
+        "role": "super_admin",
+        "is_super_admin": True
+    }
+
+def get_home_member_access(
+    home_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Проверяет, является ли пользователь членом дома"""
+    # Проверяем существование дома
+    home = crud.get_home(db, home_id)
+    if not home:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Дом не найден"
+        )
+    
+    home_member = crud.get_home_member(db, home_id, current_user.id)
+    if not home_member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Нет доступа к этому дому"
+        )
+    return current_user
+
+def get_admin_or_home_access(
+    home_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Проверяет доступ к дому: администратор ИЛИ член дома
+    Всегда возвращает User для согласованности типов
+    """
+    # Проверяем существование дома
+    home = crud.get_home(db, home_id)
+    if not home:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Дом не найден"
+        )
+    
+    # Администратор всегда имеет доступ
+    if current_user.role == "admin":
+        return current_user
+    
+    # Обычный пользователь - проверяем членство
+    home_member = crud.get_home_member(db, home_id, current_user.id)
+    if not home_member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Нет доступа к этому дому"
+        )
+    return current_user

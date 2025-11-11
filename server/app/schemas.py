@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Any, Dict, Optional, List
 from datetime import datetime
 
 # =============================================================================
@@ -81,11 +81,24 @@ class HomeCreate(BaseModel):
     name: str              # Название дома (например, "Моя квартира")
 
 
+class FamilyMemberAdd(BaseModel):
+    username: str  # username пользователя для добавления
+    
+class HomeMemberOut(BaseModel):
+    id: int
+    user_id: int
+    home_id: int
+    joined_at: datetime
+    user: UserOut  # Информация о пользователе
+    
+    model_config = {"from_attributes": True}
+
 class HomeOut(BaseModel):
-    """Модель для возврата данных о доме"""
     id: int
     name: str
-    owner_id: int          # ID владельца дома
+    owner_id: int  # Оставляем для информации, но не для прав
+    created_at: datetime
+    members: List[HomeMemberOut] = []
     
     model_config = {"from_attributes": True}
 
@@ -123,3 +136,25 @@ class AutomationOut(BaseModel):
 class PushTokenCreate(BaseModel):
     """Модель для регистрации FCM токена для push-уведомлений"""
     token: str  # FCM токен устройства
+
+
+
+
+# Суперадмин
+class SuperAdminLogin(BaseModel):
+    username: str
+    password: str
+
+class DatabaseBackupResponse(BaseModel):
+    status: str
+    message: str
+    backup_file: Optional[str] = None
+    size_bytes: Optional[int] = None
+
+class SystemInfoResponse(BaseModel):
+    platform: str
+    python_version: str
+    hostname: str
+    processor: str
+    memory: Dict[str, Any]
+    disk: Dict[str, Any]

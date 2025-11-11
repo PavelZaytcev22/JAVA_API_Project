@@ -5,6 +5,28 @@ from dotenv import load_dotenv
 # Загрузка переменных окружения из файла .env
 load_dotenv()
 
+# constants.py или в config.py
+USER_ROLES = {
+    "admin": "Администратор - полный доступ ко всем данным",
+    "user": "Обычный пользователь"
+}
+
+ADMIN_PERMISSIONS = [
+    "view_all_users",      # Просмотр всех пользователей
+    "view_all_homes",      # Просмотр всех домов
+    "manage_all_devices",  # Управление всеми устройствами
+    "manage_all_homes",    # Управление всеми домами
+    "delete_any_user",     # Удаление любых пользователей
+    "view_system_stats"    # Просмотр системной статистики
+]
+
+
+# Супер-админ через переменные окружения
+SUPER_ADMIN_USERNAME = os.getenv("SUPER_ADMIN_USERNAME", "admin")
+SUPER_ADMIN_PASSWORD = os.getenv("SUPER_ADMIN_PASSWORD", "admin123")
+SUPER_ADMIN_EMAIL = os.getenv("SUPER_ADMIN_EMAIL", "admin@system.local")
+
+
 # =============================================================================
 # НАСТРОЙКИ БАЗЫ ДАННЫХ
 # =============================================================================
