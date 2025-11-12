@@ -3,11 +3,7 @@ package com.project.smarthome;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.project.smarthome.api.ApiClient;
@@ -41,7 +37,8 @@ public class RegisterActivity extends AppCompatActivity {
         textLoginLink = findViewById(R.id.textLoginLink);
         progressBar = findViewById(R.id.progressBar);
 
-        apiService = ApiClient.getClient().create(ApiService.class);
+        // ✅ Получаем API-сервис через ApiClient
+        apiService = ApiClient.getApiService();
 
         textLoginLink.setOnClickListener(v -> {
             startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
@@ -94,7 +91,6 @@ public class RegisterActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 btnRegister.setEnabled(true);
                 Toast.makeText(RegisterActivity.this, "Ошибка соединения: " + t.getMessage(), Toast.LENGTH_LONG).show();
-                t.printStackTrace();
             }
         });
     }

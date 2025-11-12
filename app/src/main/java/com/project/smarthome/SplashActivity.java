@@ -1,46 +1,54 @@
 package com.project.smarthome;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
-import android.os.Handler;
-import android.widget.ImageView;
+import com.project.smarthome.api.ApiClient;
+import com.project.smarthome.api.ApiService;
+import com.project.smarthome.utils.SessionManager;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SplashActivity extends AppCompatActivity {
-
-    private static final int SPLASH_DELAY = 1500; // 1.5 секунды на экран заставки
+    private static final int SPLASH_DELAY = 1000;
+    private SessionManager sessionManager;
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // Можно добавить анимацию логотипа, если хочешь — потом покажу пример
-        ImageView logo = findViewById(R.id.logoImage);
+        sessionManager = new SessionManager(this);
+        apiService = ApiClient.getClient(this).create(ApiService.class);
 
-        // "Фоновая" проверка — просто запускаем через Handler, чтобы не блокировать UI
-        new Handler().postDelayed(this::checkAuthAndProceed, SPLASH_DELAY);
+        new Handler().postDelayed(this::checkServerAndNavigate, SPLASH_DELAY);
     }
 
-    private void checkAuthAndProceed() {
-        boolean isLoggedIn = checkUserLoggedIn();
+    private void checkServerAndNavigate() {
+        apiService.ping().enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful() && sessionManager.isLoggedIn()) {
+                    startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                } else {
+                    startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                }
+                finish();
+            }
 
-        Intent intent;
-        if (isLoggedIn) {
-            intent = new Intent(this, MainActivity.class);
-        } else {
-            intent = new Intent(this, LoginActivity.class);
-        }
-
-        startActivity(intent);
-        finish();
-    }
-
-    private boolean checkUserLoggedIn() {
-        // 🔹 Пример: проверяем флаг в SharedPreferences
-        return getSharedPreferences("auth_prefs", MODE_PRIVATE)
-                .getBoolean("is_logged_in", false);
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(SplashActivity.this, "Сервер недоступен", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                finish();
+            }
+        });
     }
 }

@@ -1,35 +1,50 @@
 package com.project.smarthome.api;
 
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
 
-
-    private static final String BASE_URL = "https://smart-home-x8tm.onrender.com/";
+    // 🔹 Базовый URL API (твой сервер)
+    private static String BASE_URL = "https://smart-home-x8tm.onrender.com/";
 
     private static Retrofit retrofit = null;
 
-    // Возвращаем Retrofit с базовым URL
-    public static Retrofit getClient() {
+    // ✅ Метод для получения Retrofit с логированием
+    private static Retrofit getClient() {
         if (retrofit == null) {
+
+            // Логирование всех запросов и ответов
+            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(logging)
+                    .build();
+
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
+                    .client(client)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
         return retrofit;
     }
 
-    // Если захотим динамический URL (например, с EditText)
-    public static Retrofit getClient(String baseUrl) {
-        return new Retrofit.Builder()
-                .baseUrl(baseUrl.endsWith("/") ? baseUrl : baseUrl + "/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+    // ✅ Упрощённый способ получения API-интерфейса
+    public static ApiService getApiService() {
+        return getClient().create(ApiService.class);
     }
 
-    // Для получения текущего базового URL
+    // ✅ Возможность сменить базовый URL динамически
+    public static void updateBaseUrl(String newBaseUrl) {
+        BASE_URL = newBaseUrl.endsWith("/") ? newBaseUrl : newBaseUrl + "/";
+        retrofit = null; // сбрасываем, чтобы пересоздать с новым адресом
+    }
+
+    // ✅ Для отладки
     public static String getBaseUrl() {
         return BASE_URL;
     }
