@@ -39,7 +39,8 @@ public class LoginActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
 
         sessionManager = new SessionManager(this);
-        apiService = ApiClient.getClient(this).create(ApiService.class);
+        apiService = ApiClient.getApiService();
+
 
         textRegister.setOnClickListener(v -> {
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));

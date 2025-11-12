@@ -37,7 +37,7 @@ public interface ApiService {
 
     @POST("devices/{device_id}/toggle")
     Call<Device> toggleDevice(@Header("Authorization") String token, @Path("device_id") int deviceId);
-    @GET("api/system/ping")
+    @GET("health")
     Call<Void> ping();
 
     // Notifications endpoints

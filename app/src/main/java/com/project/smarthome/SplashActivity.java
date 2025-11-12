@@ -16,6 +16,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class SplashActivity extends AppCompatActivity {
+
     private static final int SPLASH_DELAY = 1000;
     private SessionManager sessionManager;
     private ApiService apiService;
@@ -26,18 +27,26 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
 
         sessionManager = new SessionManager(this);
-        apiService = ApiClient.getClient(this).create(ApiService.class);
+        apiService = ApiClient.getApiService(); // ✅ Исправлено — теперь корректно создается сервис
 
         new Handler().postDelayed(this::checkServerAndNavigate, SPLASH_DELAY);
     }
 
     private void checkServerAndNavigate() {
+        // 🔹 Проверяем, доступен ли сервер (эндпоинт ping)
         apiService.ping().enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful() && sessionManager.isLoggedIn()) {
-                    startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                if (response.isSuccessful()) {
+                    if (sessionManager.isLoggedIn()) {
+                        // ✅ Пользователь авторизован — идем в MainActivity
+                        startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                    } else {
+                        // 🔹 Нет токена — идем на LoginActivity
+                        startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                    }
                 } else {
+                    Toast.makeText(SplashActivity.this, "Ошибка соединения с сервером", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(SplashActivity.this, LoginActivity.class));
                 }
                 finish();

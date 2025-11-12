@@ -2,8 +2,10 @@ package com.project.smarthome.repositories;
 
 import android.content.Context;
 import android.util.Log;
+
+import com.project.smarthome.api.ApiClient;
 import com.project.smarthome.api.ApiService;
-import com.project.smarthome.api.RetrofitClient;
+
 import com.project.smarthome.models.Device;
 import com.project.smarthome.models.Home;
 import com.project.smarthome.models.Room;
@@ -22,7 +24,7 @@ public class DeviceRepository {
     private int currentRoomId = -1;
 
     public DeviceRepository(Context context) {
-        this.apiService = RetrofitClient.getApiService();
+        this.apiService = ApiClient.getApiService();
         this.prefManager = SharedPrefManager.getInstance(context);
     }
 

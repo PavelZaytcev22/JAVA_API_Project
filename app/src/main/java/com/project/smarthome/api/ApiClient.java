@@ -38,6 +38,8 @@ public class ApiClient {
         return getClient().create(ApiService.class);
     }
 
+
+
     // ✅ Возможность сменить базовый URL динамически
     public static void updateBaseUrl(String newBaseUrl) {
         BASE_URL = newBaseUrl.endsWith("/") ? newBaseUrl : newBaseUrl + "/";
