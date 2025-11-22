@@ -4,14 +4,24 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
+import android.content.Context;
 public class ApiClient {
 
     // 🔹 Базовый URL API (твой сервер)
     private static String BASE_URL = "https://smart-home-x8tm.onrender.com/";
 
     private static Retrofit retrofit = null;
+    public static Retrofit getClient(Context context) {
+        if (retrofit == null) {
 
+            retrofit = new Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .client(new OkHttpClient.Builder().build())
+                    .build();
+        }
+        return retrofit;
+    }
     // ✅ Метод для получения Retrofit с логированием
     private static Retrofit getClient() {
         if (retrofit == null) {
@@ -33,17 +43,17 @@ public class ApiClient {
         return retrofit;
     }
 
-    // ✅ Упрощённый способ получения API-интерфейса
+    public static ApiService getApiService(Context context) {
+        return getClient(context).create(ApiService.class);
+    }
     public static ApiService getApiService() {
         return getClient().create(ApiService.class);
     }
 
-
-
     // ✅ Возможность сменить базовый URL динамически
     public static void updateBaseUrl(String newBaseUrl) {
         BASE_URL = newBaseUrl.endsWith("/") ? newBaseUrl : newBaseUrl + "/";
-        retrofit = null; // сбрасываем, чтобы пересоздать с новым адресом
+        retrofit = null;
     }
 
     // ✅ Для отладки

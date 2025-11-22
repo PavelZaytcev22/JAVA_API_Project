@@ -6,7 +6,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.project.smarthome.models.Device;
 import com.project.smarthome.models.Home;
-import com.project.smarthome.models.Room;
+import com.project.smarthome.models.RoomCreateRequest;
 import com.project.smarthome.repositories.DeviceRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
 public class HomeViewModel extends AndroidViewModel {
     private final DeviceRepository deviceRepository;
     private final MutableLiveData<List<Device>> devices = new MutableLiveData<>(new ArrayList<>());
-    private final MutableLiveData<List<Room>> rooms = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<RoomCreateRequest>> rooms = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<Home>> homes = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
@@ -26,7 +26,7 @@ public class HomeViewModel extends AndroidViewModel {
     }
 
     public LiveData<List<Device>> getDevices() { return devices; }
-    public LiveData<List<Room>> getRooms() { return rooms; }
+    public LiveData<List<RoomCreateRequest>> getRooms() { return rooms; }
     public LiveData<List<Home>> getHomes() { return homes; }
     public LiveData<Boolean> getIsLoading() { return isLoading; }
     public LiveData<String> getErrorMessage() { return errorMessage; }
@@ -165,9 +165,9 @@ public class HomeViewModel extends AndroidViewModel {
 
     // Fallback to demo data if API fails
     private void loadDemoData() {
-        List<Room> demoRooms = new ArrayList<>();
-        demoRooms.add(new Room(1, "Гостиная", 1));
-        demoRooms.add(new Room(2, "Спальня", 1));
+        List<RoomCreateRequest> demoRooms = new ArrayList<>();
+        demoRooms.add(new RoomCreateRequest(1, "Гостиная", 1));
+        demoRooms.add(new RoomCreateRequest(2, "Спальня", 1));
         rooms.setValue(demoRooms);
 
         List<Device> demoDevices = new ArrayList<>();

@@ -1,46 +1,96 @@
 package com.project.smarthome.api;
 
-import com.project.smarthome.models.RegisterRequest;
-import com.project.smarthome.models.RegisterResponse;
 import com.project.smarthome.models.*;
+
 import retrofit2.Call;
-import retrofit2.http.*;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 import java.util.List;
 
 public interface ApiService {
 
-    // Auth endpoints
-    @POST("api/auth/register")
-    Call<RegisterResponse> register(@Body RegisterRequest request); // Изменили имя метода
+    // ----------------------------------------
+    // AUTH
+    // ----------------------------------------
 
+    // Регистрация
+    @POST("api/auth/register")
+    Call<RegisterResponse> register(@Body RegisterRequest request);
+
+    // Логин (JWT)
     @POST("api/auth/token")
     Call<TokenResponse> login(@Body LoginRequest request);
 
-    // Homes endpoints
+
+    // ----------------------------------------
+    // HOMES
+    // ----------------------------------------
+
     @GET("homes/")
-    Call<List<Home>> getHomes(@Header("Authorization") String token);
+    Call<List<Home>> getHomes(
+            @Header("Authorization") String token
+    );
 
     @POST("homes/")
-    Call<Home> createHome(@Header("Authorization") String token, @Body Home home);
+    Call<Home> createHome(
+            @Header("Authorization") String token,
+            @Body Home home
+    );
 
-    // Rooms endpoints
+
+    // ----------------------------------------
+    // ROOMS
+    // ----------------------------------------
+
     @GET("homes/{home_id}/rooms")
-    Call<List<Room>> getRooms(@Header("Authorization") String token, @Path("home_id") int homeId);
+    Call<List<RoomCreateRequest>> getRooms(
+            @Header("Authorization") String token,
+            @Path("home_id") int homeId
+    );
 
     @POST("homes/{home_id}/rooms")
-    Call<Room> createRoom(@Header("Authorization") String token, @Path("home_id") int homeId, @Body Room room);
+    Call<RoomCreateRequest> createRoom(
+            @Header("Authorization") String token,
+            @Path("home_id") int homeId,
+            @Body RoomCreateRequest room
+    );
 
-    // Devices endpoints
+
+    // ----------------------------------------
+    // DEVICES
+    // ----------------------------------------
+
     @GET("rooms/{room_id}/devices")
-    Call<List<Device>> getDevices(@Header("Authorization") String token, @Path("room_id") int roomId);
+    Call<List<Device>> getDevices(
+            @Header("Authorization") String token,
+            @Path("room_id") int roomId
+    );
 
     @POST("devices/{device_id}/toggle")
-    Call<Device> toggleDevice(@Header("Authorization") String token, @Path("device_id") int deviceId);
+    Call<Device> toggleDevice(
+            @Header("Authorization") String token,
+            @Path("device_id") int deviceId
+    );
+
+
+    // ----------------------------------------
+    // SERVER HEALTH
+    // ----------------------------------------
+
     @GET("health")
     Call<Void> ping();
 
-    // Notifications endpoints
+
+    // ----------------------------------------
+    // NOTIFICATIONS
+    // ----------------------------------------
+
     @GET("notifications/")
-    Call<List<Notification>> getNotifications(@Header("Authorization") String token);
+    Call<List<Notification>> getNotifications(
+            @Header("Authorization") String token
+    );
 }
