@@ -44,7 +44,12 @@
             android:hint="Email"
             android:inputType="textEmailAddress"
             android:layout_marginTop="8dp"/>
-
+        <EditText
+            android:id="@+id/editFullName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Full Name"
+            android:layout_marginTop="8dp"/>
         <EditText
             android:id="@+id/editPassword"
             android:layout_width="match_parent"

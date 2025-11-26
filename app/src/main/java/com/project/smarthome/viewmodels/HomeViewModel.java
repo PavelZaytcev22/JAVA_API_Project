@@ -6,8 +6,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.project.smarthome.models.DeviceResponse;
-import com.project.smarthome.models.HomeResponse;
-import com.project.smarthome.models.RoomResponse;
+import com.project.smarthome.models.Home;
+import com.project.smarthome.models.Room;
 import com.project.smarthome.repositories.DeviceRepository;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ public class HomeViewModel extends AndroidViewModel {
     private final DeviceRepository repository;
 
     private final MutableLiveData<List<DeviceResponse>> devices = new MutableLiveData<>(new ArrayList<>());
-    private final MutableLiveData<List<RoomResponse>> rooms = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<Room>> rooms = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<HomeResponse>> homes = new MutableLiveData<>(new ArrayList<>());
 
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
@@ -31,8 +31,8 @@ public class HomeViewModel extends AndroidViewModel {
     }
 
     public LiveData<List<DeviceResponse>> getDevices() { return devices; }
-    public LiveData<List<RoomResponse>> getRooms() { return rooms; }
-    public LiveData<List<HomeResponse>> getHomes() { return homes; }
+    public LiveData<List<Room>> getRooms() { return rooms; }
+    public LiveData<List<Home>> getHomes() { return homes; }
     public LiveData<Boolean> getIsLoading() { return isLoading; }
     public LiveData<String> getErrorMessage() { return errorMessage; }
     public LiveData<Boolean> getConnectionStatus() { return connectionStatus; }

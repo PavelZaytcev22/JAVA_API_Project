@@ -8,14 +8,17 @@ import com.project.smarthome.api.ApiService;
 
 import com.project.smarthome.models.Device;
 import com.project.smarthome.models.Home;
-import com.project.smarthome.models.RoomCreateRequest;
-import com.project.smarthome.models.RoomResponse;
 import com.project.smarthome.models.Notification;
+import com.project.smarthome.models.Room;
 import com.project.smarthome.utils.SharedPrefManager;
 
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class DeviceRepository {
     private static final String TAG = "DeviceRepository";
@@ -113,8 +116,8 @@ public class DeviceRepository {
     }
 
     // Rooms methods
-    public CompletableFuture<List<RoomResponse>> getRooms(int homeId) {
-        CompletableFuture<List<RoomResponse>> future = new CompletableFuture<>();
+    public CompletableFuture<List<Room>> getRooms(int homeId) {
+        CompletableFuture<List<Room>> future = new CompletableFuture<>();
 
         if (!isTokenValid()) {
             future.completeExceptionally(new Exception("User not authenticated"));
@@ -122,11 +125,11 @@ public class DeviceRepository {
         }
 
         Log.d(TAG, "Fetching rooms for home: " + homeId);
-        apiService.getRooms(getAuthToken(), homeId).enqueue(new retrofit2.Callback<List<RoomResponse>>() {
+        apiService.getRooms(getAuthToken(), homeId).enqueue(new retrofit2.Callback<List<Room>>() {
             @Override
-            public void onResponse(retrofit2.Call<List<RoomResponse>> call, retrofit2.Response<List<RoomResponse>> response) {
+            public void onResponse(retrofit2.Call<List<Room>> call, retrofit2.Response<List<Room>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<RoomResponse> rooms = response.body();
+                    List<Room> rooms = response.body();
                     Log.d(TAG, "Rooms fetched successfully: " + rooms.size() + " rooms");
 
                     if (!rooms.isEmpty()) {
@@ -142,7 +145,7 @@ public class DeviceRepository {
             }
 
             @Override
-            public void onFailure(retrofit2.Call<List<RoomResponse>> call, Throwable t) {
+            public void onFailure(retrofit2.Call<List<Room>> call, Throwable t) {
                 Log.e(TAG, "Network error while fetching rooms: " + t.getMessage());
                 future.completeExceptionally(t);
             }
@@ -151,39 +154,28 @@ public class DeviceRepository {
         return future;
     }
 
-    public CompletableFuture<RoomResponse> createRoom(int homeId, String roomName) {
-        CompletableFuture<RoomResponse> future = new CompletableFuture<>();
+    public CompletableFuture<Map<String, Object>> controlDevice(int deviceId, String newState) {
+        CompletableFuture<Map<String, Object>> future = new CompletableFuture<>();
 
-        if (!isTokenValid()) {
-            future.completeExceptionally(new Exception("User not authenticated"));
-            return future;
-        }
+        apiService.controlDevice(deviceId, newState).enqueue(new Callback<Map<String, Object>>() {
+            @Override
+            public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
+                if (response.isSuccessful()) {
+                    future.complete(response.body());
+                } else {
+                    future.completeExceptionally(new Exception("Error: " + response.code()));
+                }
+            }
 
-        // Создаём объект запроса для создания комнаты
-        RoomCreateRequest roomRequest = new RoomCreateRequest(roomName);
-
-        // Отправляем запрос на сервер
-        apiService.createRoom(getAuthToken(), homeId, roomRequest)
-                .enqueue(new retrofit2.Callback<RoomResponse>() {
-                    @Override
-                    public void onResponse(retrofit2.Call<RoomResponse> call, retrofit2.Response<RoomResponse> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            // Возвращаем ответ сервера с ID и названием комнаты
-                            future.complete(response.body());
-                        } else {
-                            String errorMsg = "Failed to create room. Code: " + response.code();
-                            future.completeExceptionally(new Exception(errorMsg));
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(retrofit2.Call<RoomResponse> call, Throwable t) {
-                        future.completeExceptionally(t);
-                    }
-                });
+            @Override
+            public void onFailure(Call<Map<String, Object>> call, Throwable t) {
+                future.completeExceptionally(t);
+            }
+        });
 
         return future;
     }
+
 
 
 

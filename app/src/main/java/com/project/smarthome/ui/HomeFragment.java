@@ -18,7 +18,8 @@ import com.project.smarthome.R;
 import com.project.smarthome.adapters.DeviceAdapter;
 import com.project.smarthome.databinding.FragmentHomeBinding;
 import com.project.smarthome.models.Device;
-import com.project.smarthome.models.RoomCreateRequest;
+
+import com.project.smarthome.models.Room;
 import com.project.smarthome.viewmodels.HomeViewModel;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
     private DeviceAdapter deviceAdapter;
     private List<Device> allDevices = new ArrayList<>();
     private List<Device> filteredDevices = new ArrayList<>();
-    private List<RoomCreateRequest> rooms = new ArrayList<>();
+    private List<Room> rooms = new ArrayList<>();
     private String currentRoomFilter = "all";
     private boolean isGridMode = true;
 
@@ -131,7 +132,7 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
         addRoomButton("all", "Все", true);
 
         // Добавляем кнопки для каждой комнаты
-        for (RoomCreateRequest room : rooms) {
+        for (Room room : rooms) {
             addRoomButton(String.valueOf(room.getId()), room.getName(), false);
         }
     }
@@ -177,7 +178,7 @@ public class HomeFragment extends Fragment implements DeviceAdapter.OnDeviceClic
     }
 
     private String getRoomIdFromName(String roomName) {
-        for (RoomCreateRequest room : rooms) {
+        for (Room room : rooms) {
             if (room.getName().equals(roomName)) {
                 return String.valueOf(room.getId());
             }

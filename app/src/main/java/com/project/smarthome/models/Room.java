@@ -1,16 +1,20 @@
 package com.project.smarthome.models;
 
-public class Home {
+public class Room {
     private int id;
     private String name;
-    private int owner_id;
+    private int home_id;
 
-    public Home() {}
+    public Room() {}
 
-    public Home(int id, String name, int owner_id) {
+    public Room(String name) {
+        this.name = name;
+    }
+
+    public Room(int id, String name, int home_id) {
         this.id = id;
         this.name = name;
-        this.owner_id = owner_id;
+        this.home_id = home_id;
     }
 
     // Getters and setters
@@ -20,6 +24,6 @@ public class Home {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public int getOwnerId() { return owner_id; }
-    public void setOwnerId(int owner_id) { this.owner_id = owner_id; }
+    public int getHomeId() { return home_id; }
+    public void setHomeId(int home_id) { this.home_id = home_id; }
 }

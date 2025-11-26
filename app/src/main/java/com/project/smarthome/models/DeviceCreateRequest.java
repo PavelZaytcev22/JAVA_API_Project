@@ -3,29 +3,26 @@ package com.project.smarthome.models;
 public class DeviceCreateRequest {
     private String name;
     private String type;
-    private int room_id;
+    private Integer room_id;
     private String state;
 
-    public DeviceCreateRequest(String name, String type, int room_id, String state) {
+    public DeviceCreateRequest(String name, String type, Integer room_id, String state) {
         this.name = name;
         this.type = type;
         this.room_id = room_id;
         this.state = state;
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
 
-    public String getType() {
-        return type;
-    }
+    public void setName(String name) { this.name = name; }
 
-    public int getRoomId() {
-        return room_id;
-    }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
-    public String getState() {
-        return state;
-    }
+    public Integer getRoomId() { return room_id; }
+    public void setRoomId(Integer room_id) { this.room_id = room_id; }
+
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
 }
