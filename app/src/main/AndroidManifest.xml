@@ -12,7 +12,6 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:screenOrientation="portrait"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartHome"
         tools:targetApi="31" >
@@ -21,16 +20,13 @@
             android:exported="false" />
         <activity
             android:name=".LoginActivity"
-            android:exported="false"
-            android:theme="@style/Theme.SmartHome" /> <!-- Register Activity -->
+            android:exported="false" /> <!-- Register Activity -->
         <activity
             android:name=".RegisterActivity"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" /> <!-- Splash Activity -->
+            android:exported="false" /> <!-- Splash Activity -->
         <activity
             android:name=".SplashActivity"
-            android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" >
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

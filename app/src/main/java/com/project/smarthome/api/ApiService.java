@@ -46,11 +46,12 @@ public interface ApiService {
     // ROOMS
     // ----------------------------------------
 
-    @GET("homes/{home_id}/rooms")
-    Call<List<RoomCreateRequest>> getRooms(
+    @GET("api/rooms/homes/{home_id}")
+    Call<List<RoomResponse>> getRooms(
             @Header("Authorization") String token,
             @Path("home_id") int homeId
     );
+
 
     @POST("homes/{home_id}/rooms")
     Call<RoomCreateRequest> createRoom(

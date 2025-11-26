@@ -1,17 +1,21 @@
 package com.project.smarthome.models;
 
 public class RegisterResponse {
-    private String access_token;
-    private String message;
-    private boolean success;
+    private int id;
+    private String username;
+    private String email;
+    private String full_name;
 
     // Getters and setters
-    public String getAccessToken() { return access_token; }
-    public void setAccessToken(String access_token) { this.access_token = access_token; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
-    public boolean isSuccess() { return success; }
-    public void setSuccess(boolean success) { this.success = success; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getFullName() { return full_name; }
+    public void setFullName(String full_name) { this.full_name = full_name; }
 }

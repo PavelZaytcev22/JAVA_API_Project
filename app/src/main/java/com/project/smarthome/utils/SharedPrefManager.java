@@ -23,7 +23,7 @@ public class SharedPrefManager {
         return instance;
     }
 
-    // Token
+    // Token methods
     public void saveToken(String token) {
         prefs.edit().putString(KEY_TOKEN, token).apply();
     }
@@ -52,6 +52,16 @@ public class SharedPrefManager {
 
     public String getUsername() {
         return prefs.getString(KEY_USERNAME, null);
+    }
+
+    // Session management (для обратной совместимости)
+    public void saveSession(String token, String username) {
+        saveToken(token);
+        saveUsername(username);
+    }
+
+    public boolean isLoggedIn() {
+        return getToken() != null && !getToken().isEmpty();
     }
 
     // Clear all (logout)
