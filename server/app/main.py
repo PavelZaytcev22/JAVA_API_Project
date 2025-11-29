@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from .database import Base, engine
-from .routes import auth as auth_router, devices as devices_router, rooms as rooms_router, automations as autos_router, system as system_router, family as family_router
+from .routes import auth as auth_router, devices as devices_router, rooms as rooms_router, automations as autos_router, system as system_router, family as family_router, notifications as notifications_router
 from .routes import sysadmin
 from .mqtt_service import start_mqtt
 from .utils import setup_logging
@@ -64,6 +64,7 @@ app.include_router(autos_router.router)       # Автоматизации и с
 app.include_router(system_router.router)      # Системные endpoints
 app.include_router(sysadmin.router)           # Админ системы
 app.include_router(family_router.router)      # Управление семьей
+app.include_router(notifications_router.router)
 
 logger.info("Все маршруты API успешно подключены")
 

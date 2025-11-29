@@ -6,8 +6,7 @@ from ..auth import get_db, get_super_admin
 from ..database import Base, engine
 import datetime
 import os
-from typing import Dict, List, Any
-import json
+from typing import Dict, Any
 
 router = APIRouter(prefix="/api/sysadmin", tags=["system-admin"])
 

@@ -22,3 +22,7 @@
 4. Запусти:
    ```bash
    uvicorn app.main:app --reload
+
+## Диаграмма БД
+
+![alt text](image.png)

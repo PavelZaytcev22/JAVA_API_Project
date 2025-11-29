@@ -93,6 +93,9 @@ class HomeMemberOut(BaseModel):
     
     model_config = {"from_attributes": True}
 
+class HomeUpdate(BaseModel):
+    name: Optional[str] = None
+
 class HomeOut(BaseModel):
     id: int
     name: str

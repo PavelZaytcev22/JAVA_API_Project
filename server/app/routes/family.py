@@ -83,3 +83,122 @@ def remove_family_member(
     
     crud.remove_home_member(db, home_id, user_id)
     return {"status": "success", "message": "Пользователь удален из дома"}
+
+
+@router.post("/homes")
+def create_home(
+    home_in: schemas.HomeCreate,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Создание нового дома"""
+    home = crud.create_home(db, owner_id=current_user.id, home_in=home_in)
+    
+    return {
+        "status": "success", 
+        "message": "Дом успешно создан",
+        "data": {
+            "home_id": home.id,
+            "name": home.name,
+            "owner_id": home.owner_id
+        }
+    }
+
+@router.patch("/homes/{home_id}")
+def update_home(
+    home_id: int,
+    home_update: schemas.HomeUpdate,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Обновление информации о доме - доступно только владельцу
+    """
+    # Проверяем существование дома
+    home = crud.get_home_by_id(db, home_id)
+    if not home:
+        raise HTTPException(status_code=404, detail="Дом не найден")
+    
+    # Проверяем, что текущий пользователь - владелец дома
+    if home.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403, 
+            detail="Недостаточно прав. Только владелец может изменять дом"
+        )
+    
+    # Обновляем дом
+    updated_home = crud.update_home(db, home_id, home_update)
+    if not updated_home:
+        raise HTTPException(status_code=404, detail="Дом не найден")
+    
+    return {
+        "status": "success", 
+        "message": "Дом успешно обновлен",
+        "data": {
+            "home_id": updated_home.id,
+            "name": updated_home.name,
+            "owner_id": updated_home.owner_id
+        }
+    }
+
+@router.delete("/homes/{home_id}")
+def delete_home(
+    home_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Удаление дома - доступно только владельцу
+    ВНИМАНИЕ: Это действие необратимо!
+    """
+    # Проверяем существование дома
+    home = crud.get_home(db, home_id)
+    if not home:
+        raise HTTPException(status_code=404, detail="Дом не найден")
+    
+    # Проверяем, что текущий пользователь - владелец дома
+    if home.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403, 
+            detail="Недостаточно прав. Только владелец может удалить дом"
+        )
+    
+    # Удаляем дом
+    success = crud.delete_home(db, home_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Дом не найден")
+    
+    return {
+        "status": "success", 
+        "message": "Дом и все связанные данные успешно удалены"
+    }
+
+@router.get("/homes/{home_id}")
+def get_home_details(
+    home_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Получение детальной информации о доме - доступно членам дома
+    """
+    # Проверяем существование дома
+    home = crud.get_home_by_id(db, home_id)
+    if not home:
+        raise HTTPException(status_code=404, detail="Дом не найден")
+    
+    # Проверяем, что пользователь имеет доступ к дому
+    if current_user.role != "admin":
+        user_member = crud.get_home_member(db, home_id, current_user.id)
+        if not user_member:
+            raise HTTPException(status_code=403, detail="Нет доступа к этому дому")
+    
+    return {
+        "status": "success",
+        "data": {
+            "home_id": home.id,
+            "name": home.name,
+            "owner_id": home.owner_id,
+            "created_at": home.created_at if hasattr(home, 'created_at') else None
+        }
+    }

@@ -11,8 +11,7 @@ from . import models, database, config, crud
 # НАСТРОЙКИ БЕЗОПАСНОСТИ И АУТЕНТИФИКАЦИИ
 # =============================================================================
 
-# Контекст для хеширования паролей с использованием Argon2
-# Argon2 - победитель конкурса хеширования паролей, устойчив к GPU-атакам
+# Контекст для хеширования паролей с использованием Argon2=
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 # Схема OAuth2 для извлечения токена из заголовков Authorization
@@ -219,36 +218,6 @@ def get_home_member_access(
             detail="Дом не найден"
         )
     
-    home_member = crud.get_home_member(db, home_id, current_user.id)
-    if not home_member:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Нет доступа к этому дому"
-        )
-    return current_user
-
-def get_admin_or_home_access(
-    home_id: int,
-    current_user: models.User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Проверяет доступ к дому: администратор ИЛИ член дома
-    Всегда возвращает User для согласованности типов
-    """
-    # Проверяем существование дома
-    home = crud.get_home(db, home_id)
-    if not home:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Дом не найден"
-        )
-    
-    # Администратор всегда имеет доступ
-    if current_user.role == "admin":
-        return current_user
-    
-    # Обычный пользователь - проверяем членство
     home_member = crud.get_home_member(db, home_id, current_user.id)
     if not home_member:
         raise HTTPException(

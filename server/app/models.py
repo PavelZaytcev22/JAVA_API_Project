@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, T
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
+from sqlalchemy.sql import func
 
 
 class User(Base):
@@ -21,6 +22,7 @@ class User(Base):
     # Обновленные связи
     owned_homes = relationship("Home", back_populates="owner")  # Дома где пользователь владелец
     home_memberships = relationship("HomeMember", back_populates="user")  # Членство в домах
+    push_tokens = relationship("PushToken", back_populates="user", cascade="all, delete-orphan")
 
 
 class Home(Base):
@@ -112,3 +114,17 @@ class Notification(Base):
     title = Column(String(255))                                      # Заголовок уведомления
     message = Column(Text)                                           # Текст уведомления
     created_at = Column(DateTime, default=datetime.utcnow)           # Время отправки
+
+class PushToken(Base):
+    __tablename__ = "push_tokens"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    token = Column(String, unique=True, index=True, nullable=False)
+    device_type = Column(String)  # android, ios, web
+    device_name = Column(String)  # Например: "Samsung Galaxy S21"
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Связь с пользователем
+    user = relationship("User", back_populates="push_tokens")
