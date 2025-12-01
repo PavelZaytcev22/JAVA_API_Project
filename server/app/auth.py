@@ -204,24 +204,3 @@ def get_super_admin(
         "is_super_admin": True
     }
 
-def get_home_member_access(
-    home_id: int,
-    current_user: models.User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Проверяет, является ли пользователь членом дома"""
-    # Проверяем существование дома
-    home = crud.get_home(db, home_id)
-    if not home:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Дом не найден"
-        )
-    
-    home_member = crud.get_home_member(db, home_id, current_user.id)
-    if not home_member:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Нет доступа к этому дому"
-        )
-    return current_user
