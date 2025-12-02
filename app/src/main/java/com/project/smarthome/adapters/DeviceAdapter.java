@@ -1,6 +1,5 @@
 package com.project.smarthome.adapters;
 
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,10 +7,10 @@ import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.project.smarthome.R;
 import com.project.smarthome.models.Device;
-import com.project.smarthome.models.DeviceState;
 import java.util.List;
 
 public class DeviceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -32,6 +31,11 @@ public class DeviceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public DeviceAdapter(List<Device> devices, OnDeviceClickListener listener) {
         this.devices = devices;
         this.listener = listener;
+    }
+
+    public void setDevices(List<Device> devices) {
+        this.devices = devices;
+        notifyDataSetChanged();
     }
 
     public void setGridMode(boolean gridMode) {
@@ -71,7 +75,26 @@ public class DeviceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     @Override
     public int getItemCount() {
-        return devices.size();
+        return devices != null ? devices.size() : 0;
+    }
+
+    // Вспомогательные методы для проверки состояния устройства
+    private boolean isDeviceOn(Device device) {
+        String state = device.getState();
+        return "ON".equalsIgnoreCase(state) || "true".equalsIgnoreCase(state);
+    }
+
+    private boolean isMotionDetected(Device device) {
+        String state = device.getState();
+        return "MOTION".equalsIgnoreCase(state) || "true".equalsIgnoreCase(state);
+    }
+
+    private String getTemperature(Device device) {
+        return device.getState(); // предполагаем, что температура хранится в state
+    }
+
+    private String getBrightness(Device device) {
+        return device.getState(); // предполагаем, что яркость хранится в state
     }
 
     // Grid ViewHolder
@@ -96,21 +119,29 @@ public class DeviceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             switch (device.getType()) {
                 case "lamp":
                     icon.setImageResource(R.drawable.ic_lamp);
-                    status.setText(device.getState().isOn() ? "Вкл" : "Выкл");
-                    status.setTextColor(itemView.getContext().getColor(
-                            device.getState().isOn() ? R.color.green : R.color.gray));
+                    boolean isLampOn = isDeviceOn(device);
+                    status.setText(isLampOn ? "Вкл" : "Выкл");
+                    status.setTextColor(ContextCompat.getColor(itemView.getContext(),
+                            isLampOn ? R.color.green : R.color.gray));
                     break;
                 case "motion_sensor":
                     icon.setImageResource(R.drawable.ic_motion_sensor);
-                    status.setText(device.getState().isMotion() ? "Обнаружено" : "Нет движения");
+                    boolean isMotion = isMotionDetected(device);
+                    status.setText(isMotion ? "Обнаружено" : "Нет движения");
                     break;
                 case "temp_sensor":
                     icon.setImageResource(R.drawable.ic_temp_sensor);
-                    status.setText(device.getState().getTemperature() + "°C");
+                    String temp = getTemperature(device);
+                    status.setText(temp + "°C");
                     break;
                 case "siren":
                     icon.setImageResource(R.drawable.ic_siren);
-                    status.setText(device.getState().isOn() ? "Тревога" : "Выкл");
+                    boolean isSirenOn = isDeviceOn(device);
+                    status.setText(isSirenOn ? "Тревога" : "Выкл");
+                    break;
+                default:
+                    icon.setImageResource(R.drawable.ic_siren);
+                    status.setText(device.getState());
                     break;
             }
 
@@ -144,26 +175,34 @@ public class DeviceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             switch (device.getType()) {
                 case "lamp":
                     icon.setImageResource(R.drawable.ic_lamp);
-                    description.setText("Яркость: " + device.getState().getBrightness() + "%");
-                    toggle.setChecked(device.getState().isOn());
+                    boolean isLampOn = isDeviceOn(device);
+                    description.setText("Яркость: " + getBrightness(device) + "%");
+                    toggle.setChecked(isLampOn);
                     toggle.setVisibility(View.VISIBLE);
                     break;
                 case "motion_sensor":
                     icon.setImageResource(R.drawable.ic_motion_sensor);
-                    description.setText(device.getState().isMotion() ?
-                            "Движение обнаружено" : "Нет движения");
+                    boolean isMotion = isMotionDetected(device);
+                    description.setText(isMotion ? "Движение обнаружено" : "Нет движения");
                     toggle.setVisibility(View.GONE);
                     break;
                 case "temp_sensor":
                     icon.setImageResource(R.drawable.ic_temp_sensor);
-                    description.setText("Температура: " + device.getState().getTemperature() + "°C");
+                    String temp = getTemperature(device);
+                    description.setText("Температура: " + temp + "°C");
                     toggle.setVisibility(View.GONE);
                     break;
                 case "siren":
                     icon.setImageResource(R.drawable.ic_siren);
-                    description.setText(device.getState().isOn() ? "Тревога активна" : "Система охраны");
-                    toggle.setChecked(device.getState().isOn());
+                    boolean isSirenOn = isDeviceOn(device);
+                    description.setText(isSirenOn ? "Тревога активна" : "Система охраны");
+                    toggle.setChecked(isSirenOn);
                     toggle.setVisibility(View.VISIBLE);
+                    break;
+                default:
+                    icon.setImageResource(R.drawable.ic_siren);
+                    description.setText(device.getState());
+                    toggle.setVisibility(View.GONE);
                     break;
             }
 

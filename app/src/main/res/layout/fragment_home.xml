@@ -3,7 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -32,6 +33,7 @@
         android:visibility="gone" />
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nested_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
@@ -43,8 +45,6 @@
             android:orientation="vertical">
 
             <!-- Быстрые действия -->
-
-
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -52,147 +52,80 @@
                 app:cardCornerRadius="12dp">
 
                 <LinearLayout
-                    android:id="@+id/quick_action_power_on"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/ic_power"
-                        app:tint="@color/green" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Включить всё"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/quick_action_power_off"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/ic_power_off"
-                        app:tint="@color/red" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Выключить всё"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/quick_action_security"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/ic_security"
-                        app:tint="@color/orange" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Охрана"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp" />
-
-                </LinearLayout>
-
-
-                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:padding="16dp">
 
+                    <!-- Включить всё -->
                     <LinearLayout
+                        android:id="@+id/quick_action_power_on"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
-                        android:gravity="center">
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
 
-                        <ImageButton
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:src="@drawable/ic_power"
                             app:tint="@color/green" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Всё включить"
+                            android:text="Включить всё"
                             android:textSize="12sp"
-                            android:layout_marginTop="4dp" />
+                            android:layout_marginTop="8dp" />
 
                     </LinearLayout>
 
+                    <!-- Выключить всё -->
                     <LinearLayout
+                        android:id="@+id/quick_action_power_off"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
-                        android:gravity="center">
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
 
-                        <ImageButton
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:src="@drawable/ic_power_off"
                             app:tint="@color/red" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Всё выключить"
+                            android:text="Выключить всё"
                             android:textSize="12sp"
-                            android:layout_marginTop="4dp" />
+                            android:layout_marginTop="8dp" />
 
                     </LinearLayout>
 
+                    <!-- Режим охраны -->
                     <LinearLayout
+                        android:id="@+id/quick_action_security"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
-                        android:gravity="center">
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
 
-                        <ImageButton
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:src="@drawable/ic_security"
                             app:tint="@color/orange" />
 
@@ -201,7 +134,7 @@
                             android:layout_height="wrap_content"
                             android:text="Охрана"
                             android:textSize="12sp"
-                            android:layout_marginTop="4dp" />
+                            android:layout_marginTop="8dp" />
 
                     </LinearLayout>
 
@@ -209,11 +142,12 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Селектор комнат -->
+            <!-- Фильтр по комнатам -->
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="8dp">
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="8dp">
 
                 <LinearLayout
                     android:id="@+id/rooms_container"
@@ -223,12 +157,13 @@
 
             </HorizontalScrollView>
 
-            <!-- Заголовок устройств -->
+            <!-- Заголовок и переключатель вида -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:paddingBottom="8dp">
 
                 <TextView
                     android:layout_width="0dp"
@@ -236,7 +171,8 @@
                     android:layout_weight="1"
                     android:text="Устройства"
                     android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/view_mode_toggle"
@@ -249,12 +185,11 @@
 
             </LinearLayout>
 
-            <!-- RecyclerView для устройств -->
+            <!-- Список устройств -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/devices_recycler_view"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
                 android:padding="4dp" />
 
         </LinearLayout>
@@ -271,11 +206,11 @@
         android:src="@drawable/ic_add"
         app:tint="@android:color/white" />
 
-    <!-- ProgressBar при загрузке -->
+    <!-- Прогресс-бар -->
     <ProgressBar
         android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_gravity="center"
         android:visibility="gone" />
 

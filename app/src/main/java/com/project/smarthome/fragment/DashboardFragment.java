@@ -3,19 +3,23 @@ package com.project.smarthome.fragment;
 import android.os.Bundle;
 import android.view.*;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.project.smarthome.R;
 import com.project.smarthome.adapters.DeviceAdapter;
 import com.project.smarthome.models.Device;
-import com.project.smarthome.models.DeviceState;
+import com.project.smarthome.viewmodels.HomeViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,98 +28,94 @@ public class DashboardFragment extends Fragment implements DeviceAdapter.OnDevic
     private RecyclerView devicesRecyclerView;
     private ProgressBar progressBar;
     private DeviceAdapter deviceAdapter;
-    private List<Device> deviceList;
+    private HomeViewModel homeViewModel;
     private boolean isGridMode = true;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true); // Включаем меню в toolbar
+        setHasOptionsMenu(true);
+
+        // Инициализируем ViewModel
+        homeViewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
+        return inflater.inflate(R.layout.fragment_dashboard, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         initViews(view);
         setupRecyclerView();
-        loadDevices();
-        return view;
+        setupObservers();
+        setupToolbar();
+        setupFAB();
     }
 
     private void initViews(View view) {
         devicesRecyclerView = view.findViewById(R.id.devices_recycler_view);
         progressBar = view.findViewById(R.id.progress_bar);
+    }
 
-        // Настройка Toolbar
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
+    private void setupToolbar() {
+        MaterialToolbar toolbar = getView().findViewById(R.id.toolbar);
         if (getActivity() != null) {
             ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+            if (((AppCompatActivity) getActivity()).getSupportActionBar() != null) {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Мой дом");
+            }
         }
+    }
 
-        // Настройка FAB
-        FloatingActionButton fabAddDevice = view.findViewById(R.id.fab_add_device);
-        fabAddDevice.setOnClickListener(v -> openAddDeviceFragment());
+    private void setupFAB() {
+        FloatingActionButton fabAddDevice = getView().findViewById(R.id.fab_add_device);
+        fabAddDevice.setOnClickListener(v -> showAddDeviceDialog());
     }
 
     private void setupRecyclerView() {
-        deviceList = new ArrayList<>();
-        deviceAdapter = new DeviceAdapter(deviceList, this);
+        deviceAdapter = new DeviceAdapter(new ArrayList<>(), this);
         devicesRecyclerView.setAdapter(deviceAdapter);
-
-        // Начальный режим - сетка
-        switchViewMode(true);
+        switchViewMode(true); // Начальный режим - сетка
     }
 
-    private void loadDevices() {
-        showLoading(true);
+    private void setupObservers() {
+        // Наблюдаем за списком устройств
+        homeViewModel.getDevices().observe(getViewLifecycleOwner(), devices -> {
+            if (devices != null && !devices.isEmpty()) {
+                deviceAdapter.setDevices(devices);
+                hideEmptyState();
+            } else {
+                deviceAdapter.setDevices(new ArrayList<>());
+                showEmptyState();
+            }
+        });
 
-        // TODO: Заменить на реальный API call
-        // Временные демо-данные
-        new android.os.Handler().postDelayed(() -> {
-            List<Device> demoDevices = createDemoDevices();
-            deviceList.clear();
-            deviceList.addAll(demoDevices);
-            deviceAdapter.notifyDataSetChanged();
-            showLoading(false);
-        }, 1000);
-    }
+        // Наблюдаем за состоянием загрузки
+        homeViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading != null) {
+                showLoading(isLoading);
+            }
+        });
 
-    private List<Device> createDemoDevices() {
-        List<Device> devices = new ArrayList<>();
+        // Наблюдаем за ошибками
+        homeViewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && !error.isEmpty()) {
+                showError(error);
+                homeViewModel.getErrorMessage(); // Сбрасываем ошибку
+            }
+        });
 
-        // Демо-устройства
-        Device lamp1 = new Device(1, "Лампа гостиная", "lamp", true, 1);
-        lamp1.getState().setOn(true);
-        lamp1.getState().setBrightness(80);
-        devices.add(lamp1);
-
-        Device lamp2 = new Device(2, "Лампа спальня", "lamp", true, 2);
-        lamp2.getState().setOn(false);
-        lamp2.getState().setBrightness(100);
-        devices.add(lamp2);
-
-        Device motionSensor = new Device(3, "Датчик движения", "motion_sensor", true, 1);
-        motionSensor.getState().setMotionDetected(true);
-        devices.add(motionSensor);
-
-        Device tempSensor = new Device(4, "Датчик температуры", "temp_sensor", true, 1);
-        tempSensor.getState().setTemperature(22);
-        devices.add(tempSensor);
-
-        Device siren = new Device(5, "Сирена охраны", "siren", true, 1);
-        siren.getState().setOn(false);
-        devices.add(siren);
-
-        return devices;
-    }
-
-    private void showLoading(boolean show) {
-        if (progressBar != null && devicesRecyclerView != null) {
-            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-            devicesRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        // Наблюдаем за статусом соединения
+        homeViewModel.getConnectionStatus().observe(getViewLifecycleOwner(), connected -> {
+            if (connected != null && !connected) {
+                showNetworkError();
+            }
+        });
     }
 
     private void switchViewMode(boolean gridMode) {
@@ -137,26 +137,56 @@ public class DashboardFragment extends Fragment implements DeviceAdapter.OnDevic
             }
         }
 
-        // Обновляем иконку в меню
+        // Обновляем меню
         if (getActivity() != null) {
             getActivity().invalidateOptionsMenu();
         }
     }
 
-    private void openAddDeviceFragment() {
-        // TODO: Реализовать переход к фрагменту добавления устройства
-        // AddDeviceFragment addDeviceFragment = new AddDeviceFragment();
-        // requireActivity().getSupportFragmentManager().beginTransaction()
-        //     .replace(R.id.fragment_container, addDeviceFragment)
-        //     .addToBackStack(null)
-        //     .commit();
+    private void showLoading(boolean show) {
+        if (progressBar != null && devicesRecyclerView != null) {
+            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+            devicesRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    private void showEmptyState() {
+        // TODO: Показать состояние "Нет устройств"
+        // Можно добавить TextView с иконкой и текстом "Добавьте первое устройство"
+    }
+
+    private void hideEmptyState() {
+        // TODO: Скрыть состояние "Нет устройств"
+    }
+
+    private void showError(String error) {
+        Snackbar.make(requireView(), error, Snackbar.LENGTH_LONG)
+                .setAction("Повторить", v -> homeViewModel.refreshData())
+                .show();
+    }
+
+    private void showNetworkError() {
+        Snackbar.make(requireView(), "Нет соединения с сервером", Snackbar.LENGTH_INDEFINITE)
+                .setAction("Повторить", v -> homeViewModel.refreshData())
+                .show();
+    }
+
+    private void showAddDeviceDialog() {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Добавить устройство")
+                .setMessage("Функция добавления устройства будет реализована в следующем обновлении")
+                .setPositiveButton("ОК", null)
+                .show();
     }
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(R.menu.dashboard_menu, menu);
+        updateViewModeIcon(menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
 
-        // Обновляем иконку в зависимости от текущего режима
+    private void updateViewModeIcon(Menu menu) {
         MenuItem viewModeItem = menu.findItem(R.id.menu_view_mode);
         if (viewModeItem != null) {
             if (isGridMode) {
@@ -167,8 +197,6 @@ public class DashboardFragment extends Fragment implements DeviceAdapter.OnDevic
                 viewModeItem.setTitle("Сетка");
             }
         }
-
-        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
@@ -176,75 +204,76 @@ public class DashboardFragment extends Fragment implements DeviceAdapter.OnDevic
         int id = item.getItemId();
 
         if (id == R.id.menu_view_mode) {
-            // Переключаем режим просмотра
             switchViewMode(!isGridMode);
             return true;
         } else if (id == R.id.menu_refresh) {
-            // Обновляем список устройств
-            loadDevices();
+            homeViewModel.refreshData();
+            return true;
+        } else if (id == R.id.menu_settings) {
+            navigateToSettings();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    private void navigateToSettings() {
+        Toast.makeText(requireContext(), "Настройки будут реализованы позже", Toast.LENGTH_SHORT).show();
+    }
+
     // Реализация интерфейса DeviceAdapter.OnDeviceClickListener
     @Override
     public void onDeviceClick(Device device) {
         // TODO: Открыть детальную информацию об устройстве
-        // DeviceDetailFragment detailFragment = DeviceDetailFragment.newInstance(device.getId());
-        // requireActivity().getSupportFragmentManager().beginTransaction()...
+        Toast.makeText(requireContext(), "Открыть детали: " + device.getName(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onDeviceToggle(Device device, boolean isOn) {
-        // TODO: Отправить команду на сервер для изменения состояния
-        if (device != null) {
-            device.getState().setOn(isOn);
+        String newState = isOn ? "ON" : "OFF";
 
-            // Временная демо-логика
-            if (device.getType().equals("siren") && isOn) {
-                // Показать предупреждение при включении сирены
-                if (getContext() != null) {
-                    new android.app.AlertDialog.Builder(getContext())
-                            .setTitle("Включение сирены")
-                            .setMessage("Вы уверены, что хотите включить сирену?")
-                            .setPositiveButton("Да", (dialog, which) -> {
-                                // Подтверждено - состояние уже обновлено
-                                if (deviceAdapter != null) {
-                                    int position = deviceList.indexOf(device);
-                                    if (position != -1) {
-                                        deviceAdapter.notifyItemChanged(position);
-                                    }
-                                }
-                            })
-                            .setNegativeButton("Отмена", (dialog, which) -> {
-                                // Отменено - возвращаем переключатель
-                                device.getState().setOn(false);
-                                if (deviceAdapter != null) {
-                                    int position = deviceList.indexOf(device);
-                                    if (position != -1) {
-                                        deviceAdapter.notifyItemChanged(position);
-                                    }
-                                }
-                            })
-                            .show();
-                }
-            } else {
-                if (deviceAdapter != null) {
-                    int position = deviceList.indexOf(device);
-                    if (position != -1) {
-                        deviceAdapter.notifyItemChanged(position);
-                    }
-                }
-            }
+        if (device.getType().equals("siren") && isOn) {
+            // Показать подтверждение для сирены
+            showSirenConfirmationDialog(device, newState);
+        } else {
+            // Немедленное управление для других устройств
+            homeViewModel.controlDevice(device.getId(), newState);
+        }
+    }
+
+    private void showSirenConfirmationDialog(Device device, String newState) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Включение сирены")
+                .setMessage("Вы уверены, что хотите включить сирену? Это может вызвать тревогу.")
+                .setPositiveButton("Включить", (dialog, which) -> {
+                    homeViewModel.controlDevice(device.getId(), newState);
+                })
+                .setNegativeButton("Отмена", (dialog, which) -> {
+                    // Отменяем переключение в UI
+                    deviceAdapter.setDevices(homeViewModel.getDevices().getValue());
+                })
+                .setOnCancelListener(dialog -> {
+                    // Отменяем переключение в UI при отмене диалога
+                    deviceAdapter.setDevices(homeViewModel.getDevices().getValue());
+                })
+                .show();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Обновляем данные при возвращении на фрагмент
+        if (homeViewModel.getCurrentHomeId() != -1) {
+            homeViewModel.refreshData();
+        } else {
+            homeViewModel.loadData();
         }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Clean up references
+        // Очищаем ссылки
         devicesRecyclerView = null;
         progressBar = null;
         deviceAdapter = null;

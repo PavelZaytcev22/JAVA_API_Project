@@ -113,7 +113,7 @@ public class RegisterActivity extends AppCompatActivity {
     private void performRegistration(String username, String email, String password, String fullName) {
         showLoading(true);
 
-        RegisterRequest request = new RegisterRequest(username, email, password, fullName);
+        RegisterRequest request = new RegisterRequest(username, password, email, fullName);
 
         apiService.register(request).enqueue(new Callback<RegisterResponse>() {
             @Override

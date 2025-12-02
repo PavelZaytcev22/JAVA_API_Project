@@ -8,6 +8,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 import java.util.List;
 import java.util.Map;
@@ -71,11 +72,11 @@ public interface ApiService {
     @POST("api/devices/homes/{home_id}")
     Call<Device> createDevice(@Path("home_id") int homeId, @Body DeviceCreateRequest device);
 
-//    @POST("api/devices/{device_id}/action")
-//    Call<Map<String, Object>> controlDevice(
-//            @Path("device_id") int deviceId,
-//            @Query("new_state") String newState
-//    );
+    @POST("api/devices/{device_id}/action")
+    Call<Map<String, Object>> controlDevice(
+            @Path("device_id") int deviceId,
+            @Query("new_state") String newState
+    );
 
     @GET("api/devices/{device_id}")
     Call<Device> getDevice(@Path("device_id") int deviceId);
