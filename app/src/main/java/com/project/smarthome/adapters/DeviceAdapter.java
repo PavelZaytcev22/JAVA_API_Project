@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.project.smarthome.R;
-import com.project.smarthome.models.Device;
+import com.project.smarthome.models.devices.Device;
 import java.util.List;
 
 public class DeviceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {

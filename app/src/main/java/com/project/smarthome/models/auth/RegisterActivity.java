@@ -1,14 +1,14 @@
-package com.project.smarthome;
+package com.project.smarthome.models.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.project.smarthome.R;
 import com.project.smarthome.api.ApiClient;
 import com.project.smarthome.api.ApiService;
-import com.project.smarthome.models.RegisterRequest;
-import com.project.smarthome.models.RegisterResponse;
 import com.project.smarthome.utils.SharedPrefManager;
 import retrofit2.Call;
 import retrofit2.Callback;

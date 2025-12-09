@@ -1,10 +1,12 @@
 package com.project.smarthome.repositories;
 
 import android.content.Context;
-import android.util.Log;
+
 import com.project.smarthome.api.ApiClient;
 import com.project.smarthome.api.ApiService;
-import com.project.smarthome.models.*;
+import com.project.smarthome.models.devices.Device;
+import com.project.smarthome.models.homes.Home;
+import com.project.smarthome.models.homes.Room;
 import com.project.smarthome.utils.SharedPrefManager;
 import java.util.List;
 import java.util.Map;

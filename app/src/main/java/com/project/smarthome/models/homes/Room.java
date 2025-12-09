@@ -1,4 +1,4 @@
-package com.project.smarthome.models;
+package com.project.smarthome.models.homes;
 
 public class Room {
     private int id;

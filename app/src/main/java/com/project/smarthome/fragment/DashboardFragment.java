@@ -18,10 +18,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.project.smarthome.R;
 import com.project.smarthome.adapters.DeviceAdapter;
-import com.project.smarthome.models.Device;
+import com.project.smarthome.models.devices.Device;
 import com.project.smarthome.viewmodels.HomeViewModel;
 import java.util.ArrayList;
-import java.util.List;
 
 public class DashboardFragment extends Fragment implements DeviceAdapter.OnDeviceClickListener {
 

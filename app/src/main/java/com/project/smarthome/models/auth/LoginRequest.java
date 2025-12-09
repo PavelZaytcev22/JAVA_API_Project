@@ -1,4 +1,4 @@
-package com.project.smarthome.models;
+package com.project.smarthome.models.auth;
 
 public class LoginRequest {
     private String username;

@@ -1,4 +1,4 @@
-package com.project.smarthome.models;
+package com.project.smarthome.models.devices;
 
 public class DeviceCreateRequest {
     private String name;

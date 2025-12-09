@@ -1,4 +1,4 @@
-package com.project.smarthome.fragment;
+package com.project.smarthome.models.devices;
 
 import android.os.Bundle;
 import android.view.View;

@@ -1,14 +1,14 @@
 package com.project.smarthome.api;
 
 import com.project.smarthome.models.*;
+import com.project.smarthome.models.auth.*;
+import com.project.smarthome.models.devices.*;
+import com.project.smarthome.models.families.*;
+import com.project.smarthome.models.homes.*;
+
 
 import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.GET;
-import retrofit2.http.Header;
-import retrofit2.http.POST;
-import retrofit2.http.Path;
-import retrofit2.http.Query;
+import retrofit2.http.*;
 
 import java.util.List;
 import java.util.Map;
@@ -40,6 +40,24 @@ public interface ApiService {
     // ----------------------------------------
     // FAMILY MEMBERS
     //
+    @POST("families")
+    Call<FamilyResponse> createFamily(
+            @Header("Authorization") String token,
+            @Body FamilyCreateRequest request
+    );
+
+    @GET("families/{id}")
+    Call<FamilyResponse> getFamily(
+            @Header("Authorization") String token,
+            @Path("id") int id
+    );
+
+    @PUT("families/{id}")
+    Call<FamilyResponse> updateFamily(
+            @Header("Authorization") String token,
+            @Path("id") int id,
+            @Body FamilyUpdateRequest request
+    );
 
     @GET("api/family/homes/{home_id}/members")
     Call<List<FamilyMember>> getFamilyMembers(@Path("home_id") int homeId);
