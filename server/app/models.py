@@ -15,8 +15,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(100), unique=True, nullable=False)      # Уникальное имя пользователя
     password_hash = Column(String(255), nullable=False)              # Хеш пароля
-    email = Column(String(255), unique=True, nullable=True) 
-    role = Column(String(50), default="user")  # 🔐 'admin', 'user'         # Email (необязательно)
+    email = Column(String(255), unique=True, nullable=True)          # Email (необязательно)
+    role = Column(String(50), default="user")  # 🔐 'admin', 'user'         
     created_at = Column(DateTime, default=datetime.utcnow)           # Дата регистрации
 
     # Обновленные связи
