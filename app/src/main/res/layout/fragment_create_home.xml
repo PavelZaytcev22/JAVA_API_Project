@@ -6,19 +6,17 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
+    <EditText
+        android:id="@+id/editTextHomeName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Детали устройства"
-        android:textSize="24sp"
-        android:textStyle="bold" />
+        android:minHeight="48dp"
+        android:hint="Название дома" />
 
-    <TextView
-        android:id="@+id/device_id_text"
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/buttonCreateHome"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="ID устройства: "
-        android:textSize="16sp" />
-
+        android:text="Создать дом"
+        android:layout_marginTop="16dp"/>
 </LinearLayout>

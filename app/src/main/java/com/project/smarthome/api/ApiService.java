@@ -37,6 +37,14 @@ public interface ApiService {
     @POST("api/homes/")
     Call<Home> createHome(@Body Home home);
 
+
+
+    @POST("api/family/homes")
+    Call<Home> createHome(
+            @Header("Authorization") String token,
+            @Body HomeCreateRequest homeRequest
+    );
+
     // ----------------------------------------
     // FAMILY MEMBERS
     //
