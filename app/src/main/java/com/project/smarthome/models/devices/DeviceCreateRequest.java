@@ -5,7 +5,9 @@ public class DeviceCreateRequest {
     private String type;
     private Integer room_id;
     private String state;
-
+    public void HomeCreateRequest(String name) {
+        this.name = name;
+    }
     public DeviceCreateRequest(String name, String type, Integer room_id, String state) {
         this.name = name;
         this.type = type;
