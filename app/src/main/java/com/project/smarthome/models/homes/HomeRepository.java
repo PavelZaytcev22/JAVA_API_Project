@@ -1,4 +1,4 @@
-package com.project.smarthome.repositories;
+package com.project.smarthome.models.homes;
 
 import android.util.Log;
 
@@ -20,17 +20,24 @@ public class HomeRepository {
     private final ApiService apiService;
     private final SharedPrefManager sharedPrefManager;
 
-    public HomeRepository(ApiService apiService, SharedPrefManager sharedPrefManager) {
+    public HomeRepository(ApiService apiService,
+                          SharedPrefManager sharedPrefManager) {
         this.apiService = apiService;
         this.sharedPrefManager = sharedPrefManager;
     }
 
     /**
-     * Получение домов пользователя
+     * Получение списка домов текущего пользователя
      */
     public void getHomes(RepositoryCallback<List<HomeResponse>> callback) {
 
-        apiService.getMyHomes()
+        String token = sharedPrefManager.getToken();
+        if (token == null || token.isEmpty()) {
+            callback.onError("Пользователь не авторизован");
+            return;
+        }
+
+        apiService.getMyHomes("Bearer " + token)
                 .enqueue(new Callback<List<HomeResponse>>() {
 
                     @Override
@@ -41,23 +48,28 @@ public class HomeRepository {
                         if (response.isSuccessful() && response.body() != null) {
                             callback.onSuccess(response.body());
                         } else {
-                            callback.onError("Ошибка сервера: " + response.code());
+                            callback.onError(
+                                    "Ошибка получения домов: " + response.code()
+                            );
                         }
                     }
 
                     @Override
-                    public void onFailure(Call<List<HomeResponse>> call, Throwable t) {
+                    public void onFailure(
+                            Call<List<HomeResponse>> call,
+                            Throwable t
+                    ) {
                         Log.e(TAG, "getHomes failed", t);
                         callback.onError("Ошибка сети: " + t.getMessage());
                     }
                 });
     }
 
-
     /**
-     * Создание дома
+     * Создание нового дома
      */
-    public void createHome(String homeName, RepositoryCallback<HomeResponse> callback) {
+    public void createHome(String homeName,
+                           RepositoryCallback<HomeResponse> callback) {
 
         if (homeName == null || homeName.trim().isEmpty()) {
             callback.onError("Имя дома не может быть пустым");
@@ -65,12 +77,13 @@ public class HomeRepository {
         }
 
         String token = sharedPrefManager.getToken();
-        if (token == null) {
+        if (token == null || token.isEmpty()) {
             callback.onError("Пользователь не авторизован");
             return;
         }
 
-        HomeCreateRequest request = new HomeCreateRequest(homeName);
+        HomeCreateRequest request =
+                new HomeCreateRequest(homeName.trim());
 
         apiService.createHome("Bearer " + token, request)
                 .enqueue(new Callback<HomeResponse>() {
@@ -83,19 +96,25 @@ public class HomeRepository {
                         if (response.isSuccessful() && response.body() != null) {
                             callback.onSuccess(response.body());
                         } else {
-                            callback.onError("Ошибка создания дома: " + response.code());
+                            callback.onError(
+                                    "Ошибка создания дома: " + response.code()
+                            );
                         }
                     }
 
                     @Override
-                    public void onFailure(Call<HomeResponse> call, Throwable t) {
+                    public void onFailure(
+                            Call<HomeResponse> call,
+                            Throwable t
+                    ) {
+                        Log.e(TAG, "createHome failed", t);
                         callback.onError("Ошибка сети: " + t.getMessage());
                     }
                 });
     }
 
     /**
-     * Callback интерфейс
+     * Универсальный callback для Repository
      */
     public interface RepositoryCallback<T> {
         void onSuccess(T data);

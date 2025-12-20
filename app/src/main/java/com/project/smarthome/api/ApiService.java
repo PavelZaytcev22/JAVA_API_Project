@@ -34,16 +34,21 @@ public interface ApiService {
     @GET("api/family/my-homes")
     Call<List<Home>> getMyHomes();
 
-    @POST("api/family/homes")
-    Call<Home> createHome(
-            @Header("Authorization") String token,
-            @Body HomeCreateRequest homeRequest
-    );
-
 
     @POST("api/family/homes")
     Call<HomeResponse> createHome(
             @Body HomeCreateRequest homeRequest
+    );
+
+    @GET("api/family/my-homes")
+    Call<List<HomeResponse>> getMyHomes(
+            @Header("Authorization") String token
+    );
+
+    @POST("api/family/homes")
+    Call<HomeResponse> createHome(
+            @Header("Authorization") String token,
+            @Body HomeCreateRequest request
     );
     // ----------------------------------------
     // FAMILY MEMBERS
