@@ -6,6 +6,8 @@ import com.project.smarthome.api.ApiClient;
 import com.project.smarthome.api.ApiService;
 import com.project.smarthome.models.devices.Device;
 import com.project.smarthome.models.homes.Home;
+import com.project.smarthome.models.homes.HomeCreateRequest;
+import com.project.smarthome.models.homes.HomeResponse;
 import com.project.smarthome.models.homes.Room;
 import com.project.smarthome.utils.SharedPrefManager;
 import java.util.List;
@@ -227,35 +229,32 @@ public class DeviceRepository {
     }
 
     // Создание дома
-    public CompletableFuture<Home> createHome(String homeName) {
-        CompletableFuture<Home> future = new CompletableFuture<>();
+    public void createHome(String homeName, RepositoryCallback<HomeResponse> callback) {
 
-        if (!isAuthenticated()) {
-            future.completeExceptionally(new Exception("Пользователь не авторизован"));
-            return future;
-        }
+        HomeCreateRequest request = new HomeCreateRequest(homeName);
 
-        Home home = new Home();
-        home.setName(homeName);
+        apiService.createHome(request)
+                .enqueue(new Callback<HomeResponse>() {
 
-        apiService.createHome(home).enqueue(new Callback<Home>() {
-            @Override
-            public void onResponse(Call<Home> call, Response<Home> response) {
-                if (response.isSuccessful()) {
-                    future.complete(response.body());
-                } else {
-                    future.completeExceptionally(new Exception("Ошибка " + response.code()));
-                }
-            }
+                    @Override
+                    public void onResponse(
+                            Call<HomeResponse> call,
+                            Response<HomeResponse> response
+                    ) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            callback.onSuccess(response.body());
+                        } else {
+                            callback.onError("Ошибка создания дома: " + response.code());
+                        }
+                    }
 
-            @Override
-            public void onFailure(Call<Home> call, Throwable t) {
-                future.completeExceptionally(new Exception("Ошибка сети: " + t.getMessage()));
-            }
-        });
-
-        return future;
+                    @Override
+                    public void onFailure(Call<HomeResponse> call, Throwable t) {
+                        callback.onError("Ошибка сети: " + t.getMessage());
+                    }
+                });
     }
+
 
     // Проверка соединения с сервером
     public CompletableFuture<Map<String, String>> pingServer() {
