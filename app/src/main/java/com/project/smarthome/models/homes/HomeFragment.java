@@ -1,4 +1,4 @@
-package com.project.smarthome.ui;
+package com.project.smarthome.models.homes;
 
 import android.os.Bundle;
 import android.text.Editable;
@@ -23,7 +23,6 @@ import com.project.smarthome.R;
 import com.project.smarthome.adapters.DeviceAdapter;
 import com.project.smarthome.databinding.FragmentHomeBinding;
 import com.project.smarthome.models.devices.Device;
-import com.project.smarthome.models.homes.Room;
 import com.project.smarthome.viewmodels.HomeViewModel;
 import java.util.ArrayList;
 import java.util.List;

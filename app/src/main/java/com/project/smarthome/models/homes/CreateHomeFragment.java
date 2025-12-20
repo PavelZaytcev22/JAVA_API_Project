@@ -1,4 +1,4 @@
-package com.project.smarthome.ui;
+package com.project.smarthome.models.homes;
 
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -15,8 +15,6 @@ import androidx.fragment.app.Fragment;
 
 import com.project.smarthome.R;
 import com.project.smarthome.api.ApiClient;
-import com.project.smarthome.models.homes.HomeResponse;
-import com.project.smarthome.models.homes.HomeRepository;
 import com.project.smarthome.utils.SharedPrefManager;
 
 public class CreateHomeFragment extends Fragment {
