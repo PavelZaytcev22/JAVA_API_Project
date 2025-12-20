@@ -5,9 +5,7 @@ mqtt:
   password: "asu-22-1b" 
   userName: "raspberry_user"
   keepalive: 60
-  
   tls_enabled: true
-
 
 
 devices:
