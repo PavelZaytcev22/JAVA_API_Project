@@ -16,11 +16,12 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.project.smarthome.R;
 import com.project.smarthome.api.ApiClient;
-
+import com.project.smarthome.utils.SharedPrefManager;
 
 public class CreateEditRoomFragment extends Fragment {
 
     private RoomRepository roomRepository;
+    private SharedPrefManager sharedPrefManager;
 
     private EditText roomNameEdit;
 
@@ -45,6 +46,8 @@ public class CreateEditRoomFragment extends Fragment {
     ) {
         super.onViewCreated(view, savedInstanceState);
 
+        sharedPrefManager = SharedPrefManager.getInstance(requireContext());
+
         roomRepository = new RoomRepositoryImpl(
                 requireContext(),
                 ApiClient.getApiService()
@@ -66,26 +69,41 @@ public class CreateEditRoomFragment extends Fragment {
             return;
         }
 
-        roomRepository.createRoom(name, new RoomRepository.CreateRoomCallback() {
-            @Override
-            public void onSuccess(Room room) {
-                Toast.makeText(
-                        requireContext(),
-                        "Комната добавлена",
-                        Toast.LENGTH_SHORT
-                ).show();
-                goBack();
-            }
+        int homeId = (int) sharedPrefManager.getActiveHomeId();
+        if (homeId <= 0) {
+            Toast.makeText(
+                    requireContext(),
+                    "Активный дом не выбран",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
 
-            @Override
-            public void onError(Throwable throwable) {
-                Toast.makeText(
-                        requireContext(),
-                        "Ошибка создания комнаты",
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
-        });
+        roomRepository.createRoom(
+                homeId,
+                name,
+                new RoomRepository.CreateRoomCallback() {
+
+                    @Override
+                    public void onSuccess(Room room) {
+                        Toast.makeText(
+                                requireContext(),
+                                "Комната добавлена",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                        goBack();
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        Toast.makeText(
+                                requireContext(),
+                                "Ошибка создания комнаты: " + throwable.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                }
+        );
     }
 
     private void goBack() {

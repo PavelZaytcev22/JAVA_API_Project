@@ -12,6 +12,8 @@ import com.project.smarthome.models.homes.room.Room;
 import com.project.smarthome.models.homes.room.RoomCreateRequest;
 import com.project.smarthome.models.homes.room.RoomResponse;
 import com.project.smarthome.utils.SharedPrefManager;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -74,33 +76,59 @@ public class DeviceRepository {
     public CompletableFuture<List<Room>> getRooms(int homeId) {
         CompletableFuture<List<Room>> future = new CompletableFuture<>();
 
-        if (!isAuthenticated()) {
-            future.completeExceptionally(new Exception("Пользователь не авторизован"));
+        String token = SharedPrefManager.getInstance(context).getToken();
+        if (token == null || token.isEmpty()) {
+            future.completeExceptionally(
+                    new IllegalStateException("Пользователь не авторизован")
+            );
             return future;
         }
 
-        apiService.getRooms(homeId).enqueue(new Callback<List<Room>>() {
-            @Override
-            public void onResponse(Call<List<Room>> call, Response<List<Room>> response) {
-                if (response.isSuccessful()) {
-                    future.complete(response.body());
-                } else {
-                    String errorMsg = "Ошибка " + response.code();
-                    if (response.code() == 404) {
-                        errorMsg = "Дом не найден";
-                    }
-                    future.completeExceptionally(new Exception(errorMsg));
-                }
-            }
+        if (homeId <= 0) {
+            future.completeExceptionally(
+                    new IllegalArgumentException("homeId не задан")
+            );
+            return future;
+        }
 
-            @Override
-            public void onFailure(Call<List<Room>> call, Throwable t) {
-                future.completeExceptionally(new Exception("Ошибка сети: " + t.getMessage()));
-            }
-        });
+        apiService.getRooms("Bearer " + token, homeId)
+                .enqueue(new Callback<List<RoomResponse>>() {
+
+                    @Override
+                    public void onResponse(
+                            Call<List<RoomResponse>> call,
+                            Response<List<RoomResponse>> response
+                    ) {
+                        if (!response.isSuccessful() || response.body() == null) {
+                            future.completeExceptionally(
+                                    new RuntimeException(
+                                            "Ошибка загрузки комнат: " + response.code()
+                                    )
+                            );
+                            return;
+                        }
+
+                        List<Room> rooms = new ArrayList<>();
+                        for (RoomResponse rr : response.body()) {
+                            rooms.add(Room.fromResponse(rr));
+                        }
+
+                        future.complete(rooms);
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<List<RoomResponse>> call,
+                            Throwable t
+                    ) {
+                        future.completeExceptionally(t);
+                    }
+                });
 
         return future;
     }
+
+
 
     // Получение устройств для дома
     public CompletableFuture<List<Device>> getDevices(int homeId) {

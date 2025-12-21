@@ -5,6 +5,7 @@ import com.project.smarthome.models.auth.*;
 import com.project.smarthome.models.devices.*;
 import com.project.smarthome.models.families.*;
 import com.project.smarthome.models.homes.*;
+import com.project.smarthome.models.homes.room.Room;
 import com.project.smarthome.models.homes.room.RoomCreateRequest;
 import com.project.smarthome.models.homes.room.RoomResponse;
 
@@ -87,6 +88,7 @@ public interface ApiService {
     // ----------------------------------------
 // ROOMS
 // ----------------------------------------
+
 
     @GET("api/rooms/homes/{home_id}")
     Call<List<RoomResponse>> getRooms(

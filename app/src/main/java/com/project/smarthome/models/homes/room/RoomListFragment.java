@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.project.smarthome.R;
 import com.project.smarthome.api.ApiClient;
 import com.project.smarthome.models.homes.HomeManageActivity;
+import com.project.smarthome.utils.SharedPrefManager;
 
 
 import java.util.ArrayList;
@@ -100,20 +101,38 @@ public class RoomListFragment extends Fragment {
     }
 
     private void loadRooms() {
-        roomRepository.loadRooms(new RoomRepository.LoadRoomsCallback() {
-            @Override
-            public void onSuccess(List<Room> rooms) {
-                adapter.updateData(rooms);
-            }
+        int homeId = (int) SharedPrefManager
+                .getInstance(requireContext())
+                .getActiveHomeId();
 
-            @Override
-            public void onError(Throwable throwable) {
-                Toast.makeText(
-                        requireContext(),
-                        "Ошибка загрузки комнат",
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
-        });
+        if (homeId <= 0) {
+            Toast.makeText(
+                    requireContext(),
+                    "Активный дом не выбран",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        roomRepository.loadRooms(
+                homeId,
+                new RoomRepository.LoadRoomsCallback() {
+
+                    @Override
+                    public void onSuccess(List<Room> rooms) {
+                        adapter.updateData(rooms);
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        Toast.makeText(
+                                requireContext(),
+                                "Ошибка загрузки комнат: " + throwable.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                }
+        );
     }
+
 }

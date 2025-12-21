@@ -1,4 +1,5 @@
 package com.project.smarthome.models.homes.room;
+
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -13,77 +14,83 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-
 public class RoomRepositoryImpl implements RoomRepository {
 
     private final ApiService apiService;
-    private final SharedPrefManager prefManager;
+    private final SharedPrefManager sharedPrefManager;
 
     public RoomRepositoryImpl(
             @NonNull Context context,
             @NonNull ApiService apiService
     ) {
         this.apiService = apiService;
-        this.prefManager = SharedPrefManager.getInstance(context);
+        this.sharedPrefManager = SharedPrefManager.getInstance(context);
     }
 
-    @Override
-    public void loadRooms(@NonNull LoadRoomsCallback callback) {
-        long homeId = prefManager.getActiveHomeId();
-        String token = prefManager.getToken();
+    /* ===== Загрузка комнат ===== */
 
-        if (homeId == -1 || token == null) {
+    @Override
+    public void loadRooms(
+            int homeId,
+            @NonNull LoadRoomsCallback callback
+    ) {
+        String token = sharedPrefManager.getToken();
+
+        if (token == null || token.isEmpty()) {
             callback.onError(
-                    new IllegalStateException("Active home or token not found")
+                    new IllegalStateException("Пользователь не авторизован")
             );
             return;
         }
 
-        apiService.getRooms(
-                "Bearer " + token,
-                (int) homeId
-        ).enqueue(new Callback<List<RoomResponse>>() {
-            @Override
-            public void onResponse(
-                    @NonNull Call<List<RoomResponse>> call,
-                    @NonNull Response<List<RoomResponse>> response
-            ) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    callback.onError(
-                            new RuntimeException("Failed to load rooms: " + response.code())
-                    );
-                    return;
-                }
+        apiService.getRooms("Bearer " + token, homeId)
+                .enqueue(new Callback<List<RoomResponse>>() {
 
-                List<Room> result = new ArrayList<>();
-                for (RoomResponse roomResponse : response.body()) {
-                    result.add(Room.fromResponse(roomResponse));
-                }
+                    @Override
+                    public void onResponse(
+                            @NonNull Call<List<RoomResponse>> call,
+                            @NonNull Response<List<RoomResponse>> response
+                    ) {
+                        if (!response.isSuccessful() || response.body() == null) {
+                            callback.onError(
+                                    new RuntimeException(
+                                            "Ошибка загрузки комнат: " + response.code()
+                                    )
+                            );
+                            return;
+                        }
 
-                callback.onSuccess(result);
-            }
+                        List<Room> rooms = new ArrayList<>();
+                        for (RoomResponse roomResponse : response.body()) {
+                            rooms.add(Room.fromResponse(roomResponse));
+                        }
 
-            @Override
-            public void onFailure(
-                    @NonNull Call<List<RoomResponse>> call,
-                    @NonNull Throwable t
-            ) {
-                callback.onError(t);
-            }
-        });
+                        callback.onSuccess(rooms);
+                    }
+
+                    @Override
+                    public void onFailure(
+                            @NonNull Call<List<RoomResponse>> call,
+                            @NonNull Throwable t
+                    ) {
+                        callback.onError(t);
+                    }
+                });
     }
+
+    /* ===== Создание комнаты ===== */
 
     @Override
     public void createRoom(
+            int homeId,
             @NonNull String name,
             @NonNull CreateRoomCallback callback
     ) {
-        long homeId = prefManager.getActiveHomeId();
-        String token = prefManager.getToken();
+        String token = sharedPrefManager.getToken();
 
-        if (homeId == -1 || token == null) {
+        if (token == null || token.isEmpty()) {
             callback.onError(
-                    new IllegalStateException("Active home or token not found")
+                    new IllegalStateException("Пользователь не авторизован")
             );
             return;
         }
@@ -92,9 +99,10 @@ public class RoomRepositoryImpl implements RoomRepository {
 
         apiService.createRoom(
                 "Bearer " + token,
-                (int) homeId,
+                homeId,
                 request
         ).enqueue(new Callback<RoomResponse>() {
+
             @Override
             public void onResponse(
                     @NonNull Call<RoomResponse> call,
@@ -102,7 +110,9 @@ public class RoomRepositoryImpl implements RoomRepository {
             ) {
                 if (!response.isSuccessful() || response.body() == null) {
                     callback.onError(
-                            new RuntimeException("Failed to create room: " + response.code())
+                            new RuntimeException(
+                                    "Ошибка создания комнаты: " + response.code()
+                            )
                     );
                     return;
                 }
@@ -122,4 +132,3 @@ public class RoomRepositoryImpl implements RoomRepository {
         });
     }
 }
-
