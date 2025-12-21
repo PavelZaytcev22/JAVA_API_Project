@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/homeManageNavGraph"
+    app:startDestination="@id/homeListFragment">
+
+    <fragment
+        android:id="@+id/homeListFragment"
+        android:name="com.project.smarthome.models.homes.HomeListFragment"
+        android:label="Дома">
+        <action
+            android:id="@+id/action_homeList_to_roomList"
+            app:destination="@id/roomListFragment"/>
+        <action
+            android:id="@+id/action_homeList_to_createHome"
+            app:destination="@id/createHomeFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/roomListFragment"
+        android:name="com.project.smarthome.models.homes.room.RoomListFragment"
+        android:label="Комнаты">
+        <action
+            android:id="@+id/action_roomListFragment_to_createEditRoomFragment"
+            app:destination="@id/createEditRoomFragment"/>
+        <action
+            android:id="@+id/action_roomListFragment_to_deviceListFragment"
+            app:destination="@id/deviceListFragment"/>
+    </fragment>
+    <fragment
+        android:id="@+id/createHomeFragment"
+        android:name="com.project.smarthome.models.homes.CreateHomeFragment"
+        android:label="Создание дома">
+        <action
+            android:id="@+id/action_createHomeFragment_to_homeListFragment"
+            app:destination="@id/homeListFragment"/>
+
+    </fragment>
+    <fragment
+        android:id="@+id/createEditRoomFragment"
+        android:name="com.project.smarthome.models.homes.room.CreateEditRoomFragment"
+        android:label="Добавить / Редактировать комнату"/>
+
+    <fragment
+        android:id="@+id/deviceListFragment"
+        android:name="com.project.smarthome.models.devices.DeviceListFragment"
+        android:label="Устройства">
+        <action
+            android:id="@+id/action_deviceList_to_createEditDeviceFragment"
+            app:destination="@id/createEditDeviceFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/createEditDeviceFragment"
+        android:name="com.project.smarthome.models.devices.CreateEditDeviceFragment"
+        android:label="Добавить / Редактировать устройство"/>
+</navigation>
