@@ -8,7 +8,7 @@ import com.project.smarthome.models.devices.Device;
 import com.project.smarthome.models.homes.Home;
 import com.project.smarthome.models.homes.HomeCreateRequest;
 import com.project.smarthome.models.homes.HomeResponse;
-import com.project.smarthome.models.homes.Room;
+import com.project.smarthome.models.homes.room.Room;
 import com.project.smarthome.utils.SharedPrefManager;
 import java.util.List;
 import java.util.Map;

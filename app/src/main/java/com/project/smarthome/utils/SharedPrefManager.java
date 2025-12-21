@@ -4,16 +4,21 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 public class SharedPrefManager {
+
     private static final String PREF_NAME = "smarthome_prefs";
+
     private static final String KEY_TOKEN = "key_token";
     private static final String KEY_SERVER_URL = "key_server_url";
     private static final String KEY_USERNAME = "key_username";
+    private static final String KEY_ACTIVE_HOME_ID = "key_active_home_id";
 
     private static SharedPrefManager instance;
     private final SharedPreferences prefs;
 
     private SharedPrefManager(Context context) {
-        prefs = context.getApplicationContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs = context
+                .getApplicationContext()
+                .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
 
     public static synchronized SharedPrefManager getInstance(Context context) {
@@ -23,7 +28,10 @@ public class SharedPrefManager {
         return instance;
     }
 
-    // Token methods
+    // ----------------------------------------
+    // AUTH / SESSION
+    // ----------------------------------------
+
     public void saveToken(String token) {
         prefs.edit().putString(KEY_TOKEN, token).apply();
     }
@@ -36,16 +44,15 @@ public class SharedPrefManager {
         prefs.edit().remove(KEY_TOKEN).apply();
     }
 
-    // Server URL
-    public void saveServerUrl(String serverUrl) {
-        prefs.edit().putString(KEY_SERVER_URL, serverUrl).apply();
+    public boolean isLoggedIn() {
+        String token = getToken();
+        return token != null && !token.isEmpty();
     }
 
-    public String getServerUrl() {
-        return prefs.getString(KEY_SERVER_URL, null);
-    }
+    // ----------------------------------------
+    // USER
+    // ----------------------------------------
 
-    // Username
     public void saveUsername(String username) {
         prefs.edit().putString(KEY_USERNAME, username).apply();
     }
@@ -54,17 +61,47 @@ public class SharedPrefManager {
         return prefs.getString(KEY_USERNAME, null);
     }
 
-    // Session management (для обратной совместимости)
+    // ----------------------------------------
+    // SERVER
+    // ----------------------------------------
+
+    public void saveServerUrl(String serverUrl) {
+        prefs.edit().putString(KEY_SERVER_URL, serverUrl).apply();
+    }
+
+    public String getServerUrl() {
+        return prefs.getString(KEY_SERVER_URL, null);
+    }
+
+    // ----------------------------------------
+    // ACTIVE HOME
+    // ----------------------------------------
+
+    public void saveActiveHomeId(long homeId) {
+        prefs.edit().putLong(KEY_ACTIVE_HOME_ID, homeId).apply();
+    }
+
+    public long getActiveHomeId() {
+        return prefs.getLong(KEY_ACTIVE_HOME_ID, -1);
+    }
+
+    public void clearActiveHomeId() {
+        prefs.edit().remove(KEY_ACTIVE_HOME_ID).apply();
+    }
+
+    // ----------------------------------------
+    // SESSION (legacy compatibility)
+    // ----------------------------------------
+
     public void saveSession(String token, String username) {
         saveToken(token);
         saveUsername(username);
     }
 
-    public boolean isLoggedIn() {
-        return getToken() != null && !getToken().isEmpty();
-    }
+    // ----------------------------------------
+    // LOGOUT
+    // ----------------------------------------
 
-    // Clear all (logout)
     public void clearAll() {
         prefs.edit().clear().apply();
     }

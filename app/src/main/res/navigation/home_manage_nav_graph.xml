@@ -1,38 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/home_manage_nav_graph"
+    android:id="@+id/homeManageNavGraph"
     app:startDestination="@id/homeListFragment">
 
     <fragment
         android:id="@+id/homeListFragment"
         android:name="com.project.smarthome.models.homes.HomeListFragment"
-        android:label="Мои дома">
-
-        <action
-            android:id="@+id/action_homeList_to_createHome"
-            app:destination="@id/createHomeFragment" />
-
+        android:label="Дома">
         <action
             android:id="@+id/action_homeList_to_roomList"
-            app:destination="@id/roomListFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/createHomeFragment"
-        android:name="com.project.smarthome.models.homes.CreateHomeFragment"
-        android:label="Создание дома">
-
-        <action
-            android:id="@+id/action_createHome_to_roomList"
-            app:destination="@id/roomListFragment"
-            app:popUpTo="@id/homeListFragment"
-            app:popUpToInclusive="true" />
+            app:destination="@id/roomListFragment"/>
     </fragment>
 
     <fragment
         android:id="@+id/roomListFragment"
-        android:name="com.project.smarthome.models.homes.HomeListFragment"
-        android:label="Комнаты" />
+        android:name="com.project.smarthome.models.homes.room.RoomListFragment"
+        android:label="Комнаты">
+        <action
+            android:id="@+id/action_roomListFragment_to_createEditRoomFragment"
+            app:destination="@id/createEditRoomFragment"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/createEditRoomFragment"
+        android:name="com.project.smarthome.models.homes.room.CreateEditRoomFragment"
+        android:label="Добавить / Редактировать комнату"/>
+
+
+
 
 </navigation>

@@ -5,6 +5,8 @@ import com.project.smarthome.models.auth.*;
 import com.project.smarthome.models.devices.*;
 import com.project.smarthome.models.families.*;
 import com.project.smarthome.models.homes.*;
+import com.project.smarthome.models.homes.room.RoomCreateRequest;
+import com.project.smarthome.models.homes.room.RoomResponse;
 
 
 import retrofit2.Call;
@@ -83,14 +85,21 @@ public interface ApiService {
 
 
     // ----------------------------------------
-    // ROOMS
-    // ----------------------------------------
+// ROOMS
+// ----------------------------------------
 
     @GET("api/rooms/homes/{home_id}")
-    Call<List<Room>> getRooms(@Path("home_id") int homeId);
+    Call<List<RoomResponse>> getRooms(
+            @Header("Authorization") String token,
+            @Path("home_id") int homeId
+    );
 
     @POST("api/rooms/homes/{home_id}")
-    Call<Room> createRoom(@Path("home_id") int homeId, @Body Room room);
+    Call<RoomResponse> createRoom(
+            @Header("Authorization") String token,
+            @Path("home_id") int homeId,
+            @Body RoomCreateRequest request
+    );
 
 
     // ----------------------------------------

@@ -23,6 +23,7 @@ import com.project.smarthome.R;
 import com.project.smarthome.adapters.DeviceAdapter;
 import com.project.smarthome.databinding.FragmentHomeBinding;
 import com.project.smarthome.models.devices.Device;
+import com.project.smarthome.models.homes.room.Room;
 import com.project.smarthome.viewmodels.HomeViewModel;
 import java.util.ArrayList;
 import java.util.List;

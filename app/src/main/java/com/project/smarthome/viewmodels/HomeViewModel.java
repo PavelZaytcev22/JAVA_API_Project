@@ -7,7 +7,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.project.smarthome.models.devices.Device;
 import com.project.smarthome.models.homes.Home;
-import com.project.smarthome.models.homes.Room;
+import com.project.smarthome.models.homes.room.Room;
 import com.project.smarthome.repositories.DeviceRepository;
 
 import java.util.ArrayList;
