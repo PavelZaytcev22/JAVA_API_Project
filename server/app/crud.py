@@ -1,7 +1,8 @@
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from . import models, schemas, auth
 from datetime import datetime
-import json
+from sqlalchemy.sql import func
 
 # =============================================================================
 # ФУНКЦИИ ДЛЯ РАБОТЫ С ПОЛЬЗОВАТЕЛЯМИ (USERS)
@@ -74,6 +75,48 @@ def get_push_tokens_for_user(db: Session, user_id: int):
 # ФУНКЦИИ ДЛЯ РАБОТЫ С ДОМАМИ И КОМНАТАМИ
 # =============================================================================
 
+def add_home_member(db: Session, home_id: int, user_id: int):
+    """Добавление пользователя в дом"""
+    existing = db.query(models.HomeMember).filter(
+        models.HomeMember.home_id == home_id,
+        models.HomeMember.user_id == user_id
+    ).first()
+    
+    if existing:
+        return existing
+    
+    home_member = models.HomeMember(home_id=home_id, user_id=user_id)
+    db.add(home_member)
+    db.commit()
+    db.refresh(home_member)
+    return home_member
+
+def get_home_member(db: Session, home_id: int, user_id: int):
+    """Получение конкретного члена дома"""
+    return db.query(models.HomeMember).filter(
+        models.HomeMember.home_id == home_id,
+        models.HomeMember.user_id == user_id
+    ).first()
+
+def get_home_members(db: Session, home_id: int):
+    """Получение всех членов дома"""
+    return db.query(models.HomeMember).filter(
+        models.HomeMember.home_id == home_id
+    ).all()
+
+def remove_home_member(db: Session, home_id: int, user_id: int):
+    """Удаление члена из дома"""
+    member = db.query(models.HomeMember).filter(
+        models.HomeMember.home_id == home_id,
+        models.HomeMember.user_id == user_id
+    ).first()
+    
+    if member:
+        db.delete(member)
+        db.commit()
+        return True
+    return False
+
 def create_home(db: Session, owner_id: int, home_in: schemas.HomeCreate):
     """
     Создание нового дома для пользователя
@@ -82,14 +125,21 @@ def create_home(db: Session, owner_id: int, home_in: schemas.HomeCreate):
     db.add(home)
     db.commit()
     db.refresh(home)
+
+    # Создатель автоматически становится членом
+    add_home_member(db, home.id, owner_id)
+
     return home
 
+def get_home(db: Session, home_id: int):
+    """Получение дома по ID"""
+    return db.query(models.Home).filter(models.Home.id == home_id).first()
 
-def get_homes_for_user(db: Session, owner_id: int):
-    """
-    Получение всех домов пользователя
-    """
-    return db.query(models.Home).filter(models.Home.owner_id == owner_id).all()
+def get_user_homes(db: Session, user_id: int):
+    """Получение всех домов пользователя (где он член)"""
+    return db.query(models.Home).join(models.HomeMember).filter(
+        models.HomeMember.user_id == user_id
+    ).all()
 
 
 def create_room(db: Session, home_id: int, room_in: schemas.RoomCreate):
@@ -109,6 +159,56 @@ def get_rooms_for_home(db: Session, home_id: int):
     """
     return db.query(models.Room).filter(models.Room.home_id == home_id).all()
 
+def update_home(db: Session, home_id: int, home_update: schemas.HomeUpdate) -> models.Home:
+    """
+    Обновление информации о доме
+    """
+    home = db.query(models.Home).filter(models.Home.id == home_id).first()
+    if not home:
+        return None
+    
+    if home_update.name is not None:
+        home.name = home_update.name
+    
+    db.commit()
+    db.refresh(home)
+    return home
+
+def delete_home(db: Session, home_id: int) -> bool:
+    """
+    Удаление дома и всех связанных данных с учетом вашей структуры БД
+    """
+    home = db.query(models.Home).filter(models.Home.id == home_id).first()
+    if not home:
+        return False
+    
+    try:
+        # 1. Получаем все комнаты этого дома
+        rooms = db.query(models.Room).filter(models.Room.home_id == home_id).all()
+        room_ids = [room.id for room in rooms]
+        
+        # 2. Удаляем устройства из этих комнат (если комнаты есть)
+        if room_ids:
+            db.query(models.Device).filter(models.Device.room_id.in_(room_ids)).delete()
+        
+        # 3. Удаляем комнаты дома
+        db.query(models.Room).filter(models.Room.home_id == home_id).delete()
+        
+        # 4. Удаляем членов дома
+        db.query(models.HomeMember).filter(models.HomeMember.home_id == home_id).delete()
+        
+        # 5. Удаляем сам дом
+        db.delete(home)
+        db.commit()
+        return True
+        
+    except Exception as e:
+        db.rollback()
+        raise e
+
+def get_all_homes(db: Session):
+    """Получение всех домов (для администратора)"""
+    return db.query(models.Home).all()
 
 # =============================================================================
 # ФУНКЦИИ ДЛЯ РАБОТЫ С УСТРОЙСТВАМИ
@@ -214,3 +314,90 @@ def set_automation_enabled(db: Session, automation: models.Automation, enabled: 
     db.commit()
     db.refresh(automation)
     return automation
+
+
+
+def get_database_stats(db: Session):
+    """Получение статистики базы данных"""
+    from sqlalchemy import text
+    
+    stats = {}
+    
+    # Получаем список всех таблиц
+    tables = db.execute(text("SELECT name FROM sqlite_master WHERE type='table'")).fetchall()
+    
+    for table in tables:
+        table_name = table[0]
+        count = db.execute(text(f"SELECT COUNT(*) FROM {table_name}")).scalar()
+        stats[table_name] = count
+        
+    return stats
+
+def execute_raw_sql(db: Session, sql: str):
+    """Выполнение произвольного SQL запроса (ОПАСНО!)"""
+    try:
+        result = db.execute(text(sql))
+        
+        if sql.strip().lower().startswith('select'):
+            # Для SELECT возвращаем результаты
+            columns = result.keys()
+            rows = result.fetchall()
+            return {
+                "columns": list(columns),
+                "rows": [dict(zip(columns, row)) for row in rows]
+            }
+        else:
+            # Для других запросов - коммитим изменения
+            db.commit()
+            return {"status": "executed", "rows_affected": result.rowcount}
+            
+    except Exception as e:
+        db.rollback()
+        raise e
+    
+####################################
+# Push
+####################################
+
+def get_push_tokens_for_user(db: Session, user_id: int):
+    """Получить все FCM токены пользователя"""
+    return db.query(models.PushToken).filter(
+        models.PushToken.user_id == user_id
+    ).all()
+
+def save_push_token(db: Session, user_id: int, token: str, device_type: str = None, device_name: str = None):
+    """Сохранить или обновить FCM токен пользователя"""
+    # Проверяем, существует ли уже такой токен
+    existing_token = db.query(models.PushToken).filter(
+        models.PushToken.token == token
+    ).first()
+    
+    if existing_token:
+        # Обновляем существующий токен
+        existing_token.user_id = user_id
+        existing_token.device_type = device_type
+        existing_token.device_name = device_name
+        existing_token.updated_at = func.now()
+    else:
+        # Создаем новый токен
+        new_token = models.PushToken(
+            user_id=user_id,
+            token=token,
+            device_type=device_type,
+            device_name=device_name
+        )
+        db.add(new_token)
+    
+    db.commit()
+    return True
+
+def delete_push_token(db: Session, token: str):
+    """Удалить FCM токен"""
+    db_token = db.query(models.PushToken).filter(
+        models.PushToken.token == token
+    ).first()
+    
+    if db_token:
+        db.delete(db_token)
+        db.commit()
+    return True

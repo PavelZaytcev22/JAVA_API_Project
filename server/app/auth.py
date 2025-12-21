@@ -5,14 +5,13 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from . import models, database, config, crud, schemas
+from . import models, database, config, crud
 
 # =============================================================================
 # НАСТРОЙКИ БЕЗОПАСНОСТИ И АУТЕНТИФИКАЦИИ
 # =============================================================================
 
-# Контекст для хеширования паролей с использованием Argon2
-# Argon2 - победитель конкурса хеширования паролей, устойчив к GPU-атакам
+# Контекст для хеширования паролей с использованием Argon2=
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 # Схема OAuth2 для извлечения токена из заголовков Authorization
@@ -165,3 +164,43 @@ def get_current_user(
         raise credentials_exception
 
     return user
+
+def authenticate_super_admin(username: str, password: str) -> bool:
+    """
+    Аутентификация супер-администратора через переменные окружения
+    """
+    return (username == config.SUPER_ADMIN_USERNAME and 
+            password == config.SUPER_ADMIN_PASSWORD)
+
+def get_super_admin(
+    token: str = Depends(oauth2_scheme)
+):
+    """
+    Проверяет, является ли пользователь супер-администратором
+    через JWT токен
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Неверные учетные данные супер-администратора",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    payload = decode_access_token(token)
+    if payload is None:
+        raise credentials_exception
+
+    username: str = payload.get("sub")
+    role: str = payload.get("role", "")
+    
+    if username != config.SUPER_ADMIN_USERNAME or role != "super_admin":
+        raise credentials_exception
+
+    # Возвращаем объект супер-админа (не из БД)
+    return {
+        "id": 0,  # Специальный ID для супер-админа
+        "username": config.SUPER_ADMIN_USERNAME,
+        "email": config.SUPER_ADMIN_EMAIL,
+        "role": "super_admin",
+        "is_super_admin": True
+    }
+

@@ -8,3 +8,5 @@ paho-mqtt>=1.6.1
 python-dotenv>=1.0.0
 apscheduler>=3.10.0
 requests>=2.0.0
+argon2-cffi
+psutil

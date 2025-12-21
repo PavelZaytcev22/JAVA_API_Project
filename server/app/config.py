@@ -5,6 +5,28 @@ from dotenv import load_dotenv
 # Загрузка переменных окружения из файла .env
 load_dotenv()
 
+# constants.py или в config.py
+USER_ROLES = {
+    "admin": "Администратор - полный доступ ко всем данным",
+    "user": "Обычный пользователь"
+}
+
+ADMIN_PERMISSIONS = [
+    "view_all_users",      # Просмотр всех пользователей
+    "view_all_homes",      # Просмотр всех домов
+    "manage_all_devices",  # Управление всеми устройствами
+    "manage_all_homes",    # Управление всеми домами
+    "delete_any_user",     # Удаление любых пользователей
+    "view_system_stats"    # Просмотр системной статистики
+]
+
+
+# Супер-админ через переменные окружения
+SUPER_ADMIN_USERNAME = os.getenv("SUPER_ADMIN_USERNAME", "admin")
+SUPER_ADMIN_PASSWORD = os.getenv("SUPER_ADMIN_PASSWORD", "admin123")
+SUPER_ADMIN_EMAIL = os.getenv("SUPER_ADMIN_EMAIL", "admin@system.local")
+
+
 # =============================================================================
 # НАСТРОЙКИ БАЗЫ ДАННЫХ
 # =============================================================================
@@ -13,7 +35,6 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./iot_server.db")
 """
 URL для подключения к базе данных:
 - По умолчанию: SQLite база в файле iot_server.db
-- Для продакшена: postgresql://user:password@localhost/dbname
 """
 
 # =============================================================================
@@ -23,7 +44,6 @@ URL для подключения к базе данных:
 JWT_SECRET = os.getenv("JWT_SECRET", "supersecretchangeit")
 """
 Секретный ключ для подписи JWT токенов:
-- ВНИМАНИЕ: В продакшене обязательно заменить на сложный случайный ключ
 - Минимальная длина: 32 символа
 """
 
@@ -45,21 +65,22 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 # НАСТРОЙКИ MQTT БРОКЕРА
 # =============================================================================
 
-MQTT_BROKER = os.getenv("MQTT_BROKER", "broker.hivemq.com")
+MQTT_BROKER = os.getenv("MQTT_BROKER", "example.com")
 """
-Адрес MQTT брокера:
-- По умолчанию: публичный брокер HiveMQ (только для разработки)
-- Для продакшена: использовать собственный брокер с аутентификацией
+Адрес MQTT брокера
 """
 
-MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
+MQTT_PORT = int(os.getenv("MQTT_PORT", "8883"))
 """
 Порт MQTT брокера:
 - 1883: стандартный порт MQTT (без шифрования)
 - 8883: порт для MQTT over SSL/TLS
 """
 
-MQTT_BASE_TOPIC = os.getenv("MQTT_BASE_TOPIC", "smart_home/demo")
+MQTT_USERNAME = os.getenv("MQTT_USERNAME", "user")
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "password")
+
+MQTT_BASE_TOPIC = os.getenv("MQTT_BASE_TOPIC", "smart_home/production")
 """
 Базовый префикс для всех MQTT топиков:
 - Формат: project/environment/...

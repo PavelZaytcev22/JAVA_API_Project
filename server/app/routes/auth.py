@@ -83,3 +83,24 @@ def login_for_token(
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+@router.post("/super-admin/token", response_model=schemas.Token)
+def login_super_admin(credentials: schemas.UserCreate):
+    """
+    Аутентификация супер-администратора
+    Учетные данные проверяются против переменных окружения
+    """
+    if not auth.authenticate_super_admin(credentials.username, credentials.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверные учетные данные супер-администратора",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Создаем JWT токен для супер-админа
+    access_token = auth.create_access_token({
+        "sub": credentials.username,
+        "role": "super_admin"
+    })
+    
+    return {"access_token": access_token, "token_type": "bearer"}
