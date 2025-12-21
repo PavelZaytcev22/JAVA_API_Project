@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.project.smarthome.R;
 import com.project.smarthome.api.ApiClient;
+import com.project.smarthome.models.homes.HomeManageActivity;
 
 
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class RoomListFragment extends Fragment {
 
         roomRepository = new RoomRepositoryImpl(
                 requireContext(),
-                ApiClient.getInstance().getApiService()
+                ApiClient.getApiService()
         );
 
         setupRecycler(view);
@@ -92,7 +93,7 @@ public class RoomListFragment extends Fragment {
 
         finishButton.setOnClickListener(v -> {
             startActivity(
-                    new Intent(requireContext(), HomeActivity.class)
+                    new Intent(requireContext(), HomeManageActivity.class)
             );
             requireActivity().finish();
         });

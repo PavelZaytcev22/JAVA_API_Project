@@ -9,6 +9,8 @@ import com.project.smarthome.models.homes.Home;
 import com.project.smarthome.models.homes.HomeCreateRequest;
 import com.project.smarthome.models.homes.HomeResponse;
 import com.project.smarthome.models.homes.room.Room;
+import com.project.smarthome.models.homes.room.RoomCreateRequest;
+import com.project.smarthome.models.homes.room.RoomResponse;
 import com.project.smarthome.utils.SharedPrefManager;
 import java.util.List;
 import java.util.Map;
@@ -198,35 +200,41 @@ public class DeviceRepository {
     }
 
     // Создание комнаты
-    public CompletableFuture<Room> createRoom(int homeId, String roomName) {
-        CompletableFuture<Room> future = new CompletableFuture<>();
+    public void createRoom(int homeId, String roomName, RepositoryCallback<RoomResponse> callback) {
 
         if (!isAuthenticated()) {
-            future.completeExceptionally(new Exception("Пользователь не авторизован"));
-            return future;
+            callback.onError("Пользователь не авторизован");
+            return;
         }
 
-        Room room = new Room();
-        room.setName(roomName);
+        // Получаем токен и homeId
+        String token = SharedPrefManager.getInstance(context).getToken();
 
-        apiService.createRoom(homeId, room).enqueue(new Callback<Room>() {
-            @Override
-            public void onResponse(Call<Room> call, Response<Room> response) {
-                if (response.isSuccessful()) {
-                    future.complete(response.body());
-                } else {
-                    future.completeExceptionally(new Exception("Ошибка " + response.code()));
-                }
-            }
 
-            @Override
-            public void onFailure(Call<Room> call, Throwable t) {
-                future.completeExceptionally(new Exception("Ошибка сети: " + t.getMessage()));
-            }
-        });
+        // DTO для отправки на сервер
+        RoomCreateRequest request = new RoomCreateRequest(roomName);
 
-        return future;
+        apiService.createRoom(token, homeId, request)
+                .enqueue(new Callback<RoomResponse>() {
+                    @Override
+                    public void onResponse(
+                            Call<RoomResponse> call,
+                            Response<RoomResponse> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            // Room createdRoom = response.body();  <- здесь уже есть id от сервера
+                            callback.onSuccess(response.body());
+                        } else {
+                            callback.onError("Ошибка создания комнаты: " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<RoomResponse> call, Throwable t) {
+                        callback.onError("Ошибка сети: " + t.getMessage());
+                    }
+                });
     }
+
 
     // Создание дома
     public void createHome(String homeName, RepositoryCallback<HomeResponse> callback) {
