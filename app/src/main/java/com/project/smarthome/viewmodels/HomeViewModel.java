@@ -49,50 +49,49 @@ public class HomeViewModel extends AndroidViewModel {
             errorMessage.setValue("Пользователь не авторизован");
             return;
         }
-
         isLoading.setValue(true);
 
-        repository.getHomes()
-                .thenAccept(homeList -> {
-                    homes.postValue(homeList);
-
-                    if (!homeList.isEmpty()) {
-                        currentHomeId = homeList.get(0).getId();
-                        loadRooms(currentHomeId);
-                    } else {
-                        isLoading.postValue(false);
-                        errorMessage.postValue("Дома не найдены");
-                    }
-                })
-                .exceptionally(th -> {
-                    errorMessage.postValue("Не удалось загрузить дома: " + th.getMessage());
-                    connectionStatus.postValue(false);
-                    isLoading.postValue(false);
-                    return null;
-                });
+//        repository.getHomes()
+//                .thenAccept(homeList -> {
+//                    homes.postValue(homeList);
+//
+//                    if (!homeList.isEmpty()) {
+//                        currentHomeId = homeList.get(0).getId();
+//                        loadRooms(currentHomeId);
+//                    } else {
+//                        isLoading.postValue(false);
+//                        errorMessage.postValue("Дома не найдены");
+//                    }
+//                })
+//                .exceptionally(th -> {
+//                    errorMessage.postValue("Не удалось загрузить дома: " + th.getMessage());
+//                    connectionStatus.postValue(false);
+//                    isLoading.postValue(false);
+//                    return null;
+//                });
     }
 
     public void loadRooms(int homeId) {
         currentHomeId = homeId;
 
-        repository.getRooms(homeId)
-                .thenAccept(roomList -> {
-                    rooms.postValue(roomList);
-
-                    if (!roomList.isEmpty()) {
-                        currentRoomId = roomList.get(0).getId();
-                        loadDevices(homeId);
-                    } else {
-                        isLoading.postValue(false);
-                        devices.postValue(new ArrayList<>()); // Очищаем список устройств
-                    }
-                })
-                .exceptionally(th -> {
-                    errorMessage.postValue("Не удалось загрузить комнаты: " + th.getMessage());
-                    connectionStatus.postValue(false);
-                    isLoading.postValue(false);
-                    return null;
-                });
+//        repository.getRooms(homeId)
+//                .thenAccept(roomList -> {
+//                    rooms.postValue(roomList);
+//
+//                    if (!roomList.isEmpty()) {
+//                        currentRoomId = roomList.get(0).getId();
+//                        loadDevices(homeId);
+//                    } else {
+//                        isLoading.postValue(false);
+//                        devices.postValue(new ArrayList<>()); // Очищаем список устройств
+//                    }
+//                })
+//                .exceptionally(th -> {
+//                    errorMessage.postValue("Не удалось загрузить комнаты: " + th.getMessage());
+//                    connectionStatus.postValue(false);
+//                    isLoading.postValue(false);
+//                    return null;
+//                });
     }
 
     public void loadDevices(int homeId) {

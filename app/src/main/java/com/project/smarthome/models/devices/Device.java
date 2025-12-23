@@ -1,28 +1,21 @@
 package com.project.smarthome.models.devices;
 
-import java.util.Map;
-
 public class Device {
+
+    // === SERVER FIELDS ===
     private int id;
     private String name;
     private String type;
-    private Integer room_id; // Может быть null поэтому Integer
+    private Integer room_id;
     private int home_id;
     private String state;
-    private Map<String, Object> properties;
+    private String last_update; // ISO-8601
+
+    private boolean pending;   // запрос отправлен
+    private boolean deleted;
 
     public Device() {}
 
-    public Device(int id, String name, String type, Integer room_id, int home_id, String state) {
-        this.id = id;
-        this.name = name;
-        this.type = type;
-        this.room_id = room_id;
-        this.home_id = home_id;
-        this.state = state;
-    }
-
-    // Getters and setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -41,6 +34,14 @@ public class Device {
     public String getState() { return state; }
     public void setState(String state) { this.state = state; }
 
-    public Map<String, Object> getProperties() { return properties; }
-    public void setProperties(Map<String, Object> properties) { this.properties = properties; }
+    public String getLastUpdate() { return last_update; }
+    public void setLastUpdate(String last_update) {
+        this.last_update = last_update;
+    }
+
+    public boolean isPending() { return pending; }
+    public void setPending(boolean pending) { this.pending = pending; }
+
+    public boolean isDeleted() { return deleted; }
+    public void setDeleted(boolean deleted) { this.deleted = deleted; }
 }
