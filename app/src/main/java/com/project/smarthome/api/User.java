@@ -1,4 +1,4 @@
-package com.project.smarthome.models;
+package com.project.smarthome.api;
 import com.google.gson.annotations.SerializedName;
 public class User {
     @SerializedName("id")

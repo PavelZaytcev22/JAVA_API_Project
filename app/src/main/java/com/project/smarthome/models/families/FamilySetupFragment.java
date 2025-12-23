@@ -3,6 +3,7 @@ package com.project.smarthome.models.families;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,14 +21,14 @@ public class FamilySetupFragment extends Fragment {
     private FragmentFamilySetupBinding binding;
     private FamilySetupViewModel viewModel;
     private FamilyAdapter adapter;
+    private int familyId = 1; // TODO: передать актуальный ID семьи
 
     public FamilySetupFragment() {
         super(R.layout.fragment_family_setup);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view,
-                              @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         binding = FragmentFamilySetupBinding.bind(view);
@@ -37,7 +38,7 @@ public class FamilySetupFragment extends Fragment {
         observeViewModel();
         setupActions();
 
-        viewModel.loadMembers();
+        viewModel.loadMembers(familyId);
     }
 
     private void setupRecycler() {
@@ -48,6 +49,9 @@ public class FamilySetupFragment extends Fragment {
 
     private void observeViewModel() {
         viewModel.getMembers().observe(getViewLifecycleOwner(), adapter::submitList);
+        viewModel.getError().observe(getViewLifecycleOwner(), msg -> {
+            Toast.makeText(requireContext(), "Ошибка: " + msg, Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void setupActions() {
@@ -68,7 +72,7 @@ public class FamilySetupFragment extends Fragment {
                 .setPositiveButton("Пригласить", (d, w) -> {
                     String username = input.getText().toString().trim();
                     if (!username.isEmpty()) {
-                        viewModel.inviteUser(username);
+                        viewModel.inviteUser(username, familyId);
                     }
                 })
                 .setNegativeButton("Отмена", null)

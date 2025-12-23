@@ -8,6 +8,7 @@ public class SharedPrefManager {
     private static final String PREF_NAME = "smarthome_prefs";
 
     private static final String KEY_TOKEN = "key_token";
+    private static final String KEY_FCM_TOKEN = "key_fcm_token"; // Новый ключ для FCM токена
     private static final String KEY_SERVER_URL = "key_server_url";
     private static final String KEY_USERNAME = "key_username";
     private static final String KEY_ACTIVE_HOME_ID = "key_active_home_id";
@@ -26,6 +27,22 @@ public class SharedPrefManager {
             instance = new SharedPrefManager(context);
         }
         return instance;
+    }
+
+    // ----------------------------------------
+    // FCM TOKEN
+    // ----------------------------------------
+
+    public void saveFcmToken(String fcmToken) {
+        prefs.edit().putString(KEY_FCM_TOKEN, fcmToken).apply();
+    }
+
+    public String getFcmToken() {
+        return prefs.getString(KEY_FCM_TOKEN, null);
+    }
+
+    public void clearFcmToken() {
+        prefs.edit().remove(KEY_FCM_TOKEN).apply();
     }
 
     // ----------------------------------------

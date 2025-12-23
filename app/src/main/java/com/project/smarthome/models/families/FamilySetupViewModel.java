@@ -4,10 +4,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.project.smarthome.api.SharedPrefManager;
+import com.project.smarthome.utils.SharedPrefManager;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public class FamilySetupViewModel extends ViewModel {
 
@@ -28,9 +27,13 @@ public class FamilySetupViewModel extends ViewModel {
         String token = SharedPrefManager.getInstance().getToken();
 
         repository.getFamily(token, familyId)
-                .thenAccept(response -> members.postValue(response.getMembers()))
-                .exceptionally(throwable -> {
-                    error.postValue(throwable.getMessage());
+                .thenAccept(response -> {
+                    if (response != null && response.getMembers() != null) {
+                        members.postValue(response.getMembers());
+                    }
+                })
+                .exceptionally(t -> {
+                    error.postValue(t.getMessage());
                     return null;
                 });
     }
@@ -38,13 +41,18 @@ public class FamilySetupViewModel extends ViewModel {
     public void inviteUser(String username, int familyId) {
         String token = SharedPrefManager.getInstance().getToken();
 
-        // Формируем DTO для API
+        // создаем объект для добавления участника
         FamilyMemberAdd addReq = new FamilyMemberAdd(username);
 
-        repository.createFamily(token, username, familyId) // если у вас есть отдельный endpoint для добавления участников — замените
-                .thenAccept(response -> members.postValue(response.getMembers()))
-                .exceptionally(throwable -> {
-                    error.postValue(throwable.getMessage());
+        // В зависимости от API, используем createFamily или отдельный endpoint addMember
+        repository.createFamily(token, username, familyId)
+                .thenAccept(response -> {
+                    if (response != null && response.getMembers() != null) {
+                        members.postValue(response.getMembers());
+                    }
+                })
+                .exceptionally(t -> {
+                    error.postValue(t.getMessage());
                     return null;
                 });
     }

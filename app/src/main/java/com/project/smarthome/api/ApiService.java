@@ -1,11 +1,9 @@
 package com.project.smarthome.api;
 
-import com.project.smarthome.models.*;
 import com.project.smarthome.models.auth.*;
 import com.project.smarthome.models.devices.*;
 import com.project.smarthome.models.families.*;
 import com.project.smarthome.models.homes.*;
-import com.project.smarthome.models.homes.room.Room;
 import com.project.smarthome.models.homes.room.RoomCreateRequest;
 import com.project.smarthome.models.homes.room.RoomResponse;
 
@@ -143,4 +141,10 @@ public interface ApiService {
     Call<List<Notification>> getNotifications(
             @Header("Authorization") String token
     );
+    @POST("api/notifications/push-token")
+    Call<ApiResponse> registerPushToken(@Body PushTokenRequest request);
+
+    @DELETE("api/notifications/push-token")
+    Call<ApiResponse> unregisterPushToken(@Body PushTokenRequest request);
 }
+
