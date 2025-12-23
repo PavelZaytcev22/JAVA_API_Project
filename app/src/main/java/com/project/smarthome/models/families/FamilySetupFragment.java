@@ -21,7 +21,7 @@ public class FamilySetupFragment extends Fragment {
     private FragmentFamilySetupBinding binding;
     private FamilySetupViewModel viewModel;
     private FamilyAdapter adapter;
-    private int familyId = 1; // TODO: передать актуальный ID семьи
+    private int familyId = 1;
 
     public FamilySetupFragment() {
         super(R.layout.fragment_family_setup);
