@@ -10,13 +10,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
     private static Retrofit retrofit = null;
-    private static String currentBaseUrl = "https://smart-home-x8tm.onrender.com/";
+    private static String currentBaseUrl = "https://smart-home-x8tm.onrender.com/"; // Добавьте сюда ваш URL по умолчанию
     private static SharedPrefManager sharedPrefManager;
 
     // Инициализация должна быть вызвана в Application классе или первой Activity
     public static void initialize(Context context) {
         if (sharedPrefManager == null) {
-            sharedPrefManager = SharedPrefManager.getInstance(context);
+            sharedPrefManager = SharedPrefManager.getInstance(context.getApplicationContext());
 
             // Восстанавливаем сохраненный URL если есть
             String savedUrl = sharedPrefManager.getServerUrl();

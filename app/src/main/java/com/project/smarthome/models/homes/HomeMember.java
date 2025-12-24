@@ -1,7 +1,7 @@
 package com.project.smarthome.models.homes;
 
 import com.google.gson.annotations.SerializedName;
-import com.project.smarthome.models.User;
+import com.project.smarthome.api.User;
 
 public class HomeMember {
 

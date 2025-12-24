@@ -1,11 +1,13 @@
 package com.project.smarthome.api;
 
-import com.project.smarthome.models.*;
+import com.project.smarthome.models.Automation;
+import com.project.smarthome.models.CreateAutomationRequest;
+import com.project.smarthome.models.EnableAutomationRequest;
+import com.project.smarthome.models.EnableAutomationResponse;
 import com.project.smarthome.models.auth.*;
 import com.project.smarthome.models.devices.*;
 import com.project.smarthome.models.families.*;
 import com.project.smarthome.models.homes.*;
-import com.project.smarthome.models.homes.room.Room;
 import com.project.smarthome.models.homes.room.RoomCreateRequest;
 import com.project.smarthome.models.homes.room.RoomResponse;
 
@@ -143,4 +145,26 @@ public interface ApiService {
     Call<List<Notification>> getNotifications(
             @Header("Authorization") String token
     );
+    @POST("api/notifications/push-token")
+    Call<ApiResponse> registerPushToken(@Body PushTokenRequest request);
+
+    @DELETE("api/notifications/push-token")
+    Call<ApiResponse> unregisterPushToken(@Body PushTokenRequest request);
+
+    // ----------------------------------------
+    // Методы для автоматизаций
+    // ----------------------------------------
+
+    @GET("api/automations/")
+    Call<List<Automation>> getAutomations();
+
+    @POST("api/automations/")
+    Call<Automation> createAutomation(@Body CreateAutomationRequest request);
+
+    @POST("api/automations/{id}/enable")
+    Call<EnableAutomationResponse> toggleAutomation(
+            @Path("id") int automationId,
+            @Body EnableAutomationRequest request
+    );
 }
+

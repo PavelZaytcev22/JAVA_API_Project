@@ -1,4 +1,4 @@
-package com.project.smarthome.models;
+package com.project.smarthome.api;
 
 import java.util.Map;
 
@@ -11,7 +11,19 @@ public class Notification {
     private String createdAt;
     private Map<String, Object> data;
 
-    // Геттеры и сеттеры
+    // Конструктор для создания уведомления из FCM данных
+    public static Notification fromFcmData(Map<String, String> fcmData) {
+        Notification notification = new Notification();
+        notification.setTitle(fcmData.get("title"));
+        notification.setMessage(fcmData.get("body"));
+        notification.setType(fcmData.get("type"));
+        notification.setCreatedAt(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                .format(new java.util.Date()));
+        notification.setRead(false);
+        return notification;
+    }
+
+    // Геттеры и сеттеры...
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

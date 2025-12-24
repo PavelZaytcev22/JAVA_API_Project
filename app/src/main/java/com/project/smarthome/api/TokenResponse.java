@@ -1,4 +1,4 @@
-package com.project.smarthome.models;
+package com.project.smarthome.api;
 
 public class TokenResponse {
     private String access_token;

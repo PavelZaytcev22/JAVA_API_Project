@@ -10,7 +10,7 @@ import com.project.smarthome.MainActivity;
 import com.project.smarthome.R;
 import com.project.smarthome.api.ApiClient;
 import com.project.smarthome.api.ApiService;
-import com.project.smarthome.models.TokenResponse;
+import com.project.smarthome.api.TokenResponse;
 import com.project.smarthome.utils.SharedPrefManager;
 import retrofit2.Call;
 import retrofit2.Callback;

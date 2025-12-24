@@ -1,126 +1,86 @@
 package com.project.smarthome.repositories;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.project.smarthome.api.ApiClient;
 import com.project.smarthome.api.ApiService;
 import com.project.smarthome.models.devices.Device;
-import com.project.smarthome.models.homes.Home;
-import com.project.smarthome.models.homes.HomeCreateRequest;
-import com.project.smarthome.models.homes.HomeResponse;
-import com.project.smarthome.models.homes.room.Room;
-import com.project.smarthome.models.homes.room.RoomCreateRequest;
-import com.project.smarthome.models.homes.room.RoomResponse;
+import com.project.smarthome.models.devices.DeviceCreateRequest;
 import com.project.smarthome.utils.SharedPrefManager;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class DeviceRepository {
+
     private static final String TAG = "DeviceRepository";
 
     private final ApiService apiService;
     private final SharedPrefManager sharedPrefManager;
-    private final Context context;
 
     public DeviceRepository(Context context) {
-        this.context = context.getApplicationContext();
-        ApiClient.initialize(this.context);
         this.apiService = ApiClient.getApiService();
-        this.sharedPrefManager = SharedPrefManager.getInstance(this.context);
+        this.sharedPrefManager = SharedPrefManager.getInstance(context);
     }
 
-    // Проверка авторизации
+    /* ==========================
+       Авторизация
+       ========================== */
+
     public boolean isAuthenticated() {
-        return sharedPrefManager.isLoggedIn();
+        String token = sharedPrefManager.getToken();
+        return token != null && !token.isEmpty();
     }
 
-    // Получение домов
-    public CompletableFuture<List<Home>> getHomes() {
-        CompletableFuture<List<Home>> future = new CompletableFuture<>();
+    private String authHeader() {
+        return "Bearer " + sharedPrefManager.getToken();
+    }
+
+    /* ==========================
+       Устройства
+       ========================== */
+
+    /**
+     * Получить список устройств дома
+     * GET /api/devices/homes/{home_id}
+     */
+    public CompletableFuture<List<Device>> getDevices(int homeId) {
+        CompletableFuture<List<Device>> future = new CompletableFuture<>();
 
         if (!isAuthenticated()) {
-            future.completeExceptionally(new Exception("Пользователь не авторизован"));
-            return future;
-        }
-
-        apiService.getMyHomes().enqueue(new Callback<List<Home>>() {
-            @Override
-            public void onResponse(Call<List<Home>> call, Response<List<Home>> response) {
-                if (response.isSuccessful()) {
-                    future.complete(response.body());
-                } else {
-                    String errorMsg = "Ошибка " + response.code();
-                    if (response.code() == 401) {
-                        errorMsg = "Требуется повторная авторизация";
-                    }
-                    future.completeExceptionally(new Exception(errorMsg));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Home>> call, Throwable t) {
-                future.completeExceptionally(new Exception("Ошибка сети: " + t.getMessage()));
-            }
-        });
-
-        return future;
-    }
-
-    // Получение комнат для дома
-    public CompletableFuture<List<Room>> getRooms(int homeId) {
-        CompletableFuture<List<Room>> future = new CompletableFuture<>();
-
-        String token = SharedPrefManager.getInstance(context).getToken();
-        if (token == null || token.isEmpty()) {
             future.completeExceptionally(
                     new IllegalStateException("Пользователь не авторизован")
             );
             return future;
         }
 
-        if (homeId <= 0) {
-            future.completeExceptionally(
-                    new IllegalArgumentException("homeId не задан")
-            );
-            return future;
-        }
-
-        apiService.getRooms("Bearer " + token, homeId)
-                .enqueue(new Callback<List<RoomResponse>>() {
-
+        apiService.getDevices(homeId)
+                .enqueue(new Callback<List<Device>>() {
                     @Override
                     public void onResponse(
-                            Call<List<RoomResponse>> call,
-                            Response<List<RoomResponse>> response
+                            Call<List<Device>> call,
+                            Response<List<Device>> response
                     ) {
-                        if (!response.isSuccessful() || response.body() == null) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            future.complete(response.body());
+                        } else {
                             future.completeExceptionally(
                                     new RuntimeException(
-                                            "Ошибка загрузки комнат: " + response.code()
+                                            "Ошибка получения устройств: " + response.code()
                                     )
                             );
-                            return;
                         }
-
-                        List<Room> rooms = new ArrayList<>();
-                        for (RoomResponse rr : response.body()) {
-                            rooms.add(Room.fromResponse(rr));
-                        }
-
-                        future.complete(rooms);
                     }
 
                     @Override
-                    public void onFailure(
-                            Call<List<RoomResponse>> call,
-                            Throwable t
-                    ) {
+                    public void onFailure(Call<List<Device>> call, Throwable t) {
+                        Log.e(TAG, "getDevices failed", t);
                         future.completeExceptionally(t);
                     }
                 });
@@ -128,189 +88,134 @@ public class DeviceRepository {
         return future;
     }
 
-
-
-    // Получение устройств для дома
-    public CompletableFuture<List<Device>> getDevices(int homeId) {
-        CompletableFuture<List<Device>> future = new CompletableFuture<>();
-
-        if (!isAuthenticated()) {
-            future.completeExceptionally(new Exception("Пользователь не авторизован"));
-            return future;
-        }
-
-        apiService.getDevices(homeId).enqueue(new Callback<List<Device>>() {
-            @Override
-            public void onResponse(Call<List<Device>> call, Response<List<Device>> response) {
-                if (response.isSuccessful()) {
-                    future.complete(response.body());
-                } else {
-                    String errorMsg = "Ошибка " + response.code();
-                    if (response.code() == 404) {
-                        errorMsg = "Дом не найден";
-                    }
-                    future.completeExceptionally(new Exception(errorMsg));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Device>> call, Throwable t) {
-                future.completeExceptionally(new Exception("Ошибка сети: " + t.getMessage()));
-            }
-        });
-
-        return future;
-    }
-
-    // Управление устройством
-    public CompletableFuture<Map<String, Object>> controlDevice(int deviceId, String newState) {
-        CompletableFuture<Map<String, Object>> future = new CompletableFuture<>();
-
-        if (!isAuthenticated()) {
-            future.completeExceptionally(new Exception("Пользователь не авторизован"));
-            return future;
-        }
-
-        apiService.controlDevice(deviceId, newState).enqueue(new Callback<Map<String, Object>>() {
-            @Override
-            public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
-                if (response.isSuccessful()) {
-                    future.complete(response.body());
-                } else {
-                    String errorMsg = "Ошибка " + response.code();
-                    switch (response.code()) {
-                        case 403:
-                            errorMsg = "Нет доступа к устройству";
-                            break;
-                        case 404:
-                            errorMsg = "Устройство не найдено";
-                            break;
-                    }
-                    future.completeExceptionally(new Exception(errorMsg));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Map<String, Object>> call, Throwable t) {
-                future.completeExceptionally(new Exception("Ошибка сети: " + t.getMessage()));
-            }
-        });
-
-        return future;
-    }
-
-    // Получение информации об устройстве
+    /**
+     * Получить одно устройство
+     * GET /api/devices/{device_id}
+     */
     public CompletableFuture<Device> getDevice(int deviceId) {
         CompletableFuture<Device> future = new CompletableFuture<>();
 
         if (!isAuthenticated()) {
-            future.completeExceptionally(new Exception("Пользователь не авторизован"));
+            future.completeExceptionally(
+                    new IllegalStateException("Пользователь не авторизован")
+            );
             return future;
         }
 
-        apiService.getDevice(deviceId).enqueue(new Callback<Device>() {
-            @Override
-            public void onResponse(Call<Device> call, Response<Device> response) {
-                if (response.isSuccessful()) {
-                    future.complete(response.body());
-                } else {
-                    future.completeExceptionally(new Exception("Ошибка " + response.code()));
-                }
-            }
+        apiService.getDevice(deviceId)
+                .enqueue(new Callback<Device>() {
+                    @Override
+                    public void onResponse(
+                            Call<Device> call,
+                            Response<Device> response
+                    ) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            future.complete(response.body());
+                        } else {
+                            future.completeExceptionally(
+                                    new RuntimeException(
+                                            "Устройство не найдено: " + response.code()
+                                    )
+                            );
+                        }
+                    }
 
-            @Override
-            public void onFailure(Call<Device> call, Throwable t) {
-                future.completeExceptionally(new Exception("Ошибка сети: " + t.getMessage()));
-            }
-        });
+                    @Override
+                    public void onFailure(Call<Device> call, Throwable t) {
+                        Log.e(TAG, "getDevice failed", t);
+                        future.completeExceptionally(t);
+                    }
+                });
 
         return future;
     }
 
-    // Создание комнаты
-    public void createRoom(int homeId, String roomName, RepositoryCallback<RoomResponse> callback) {
+    /**
+     * Создание устройства
+     * POST /api/devices/homes/{home_id}
+     */
+    public CompletableFuture<Device> createDevice(
+            int homeId,
+            DeviceCreateRequest request
+    ) {
+        CompletableFuture<Device> future = new CompletableFuture<>();
 
         if (!isAuthenticated()) {
-            callback.onError("Пользователь не авторизован");
-            return;
+            future.completeExceptionally(
+                    new IllegalStateException("Пользователь не авторизован")
+            );
+            return future;
         }
 
-        // Получаем токен и homeId
-        String token = SharedPrefManager.getInstance(context).getToken();
-
-
-        // DTO для отправки на сервер
-        RoomCreateRequest request = new RoomCreateRequest(roomName);
-
-        apiService.createRoom(token, homeId, request)
-                .enqueue(new Callback<RoomResponse>() {
+        apiService.createDevice(homeId, request)
+                .enqueue(new Callback<Device>() {
                     @Override
                     public void onResponse(
-                            Call<RoomResponse> call,
-                            Response<RoomResponse> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            // Room createdRoom = response.body();  <- здесь уже есть id от сервера
-                            callback.onSuccess(response.body());
-                        } else {
-                            callback.onError("Ошибка создания комнаты: " + response.code());
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<RoomResponse> call, Throwable t) {
-                        callback.onError("Ошибка сети: " + t.getMessage());
-                    }
-                });
-    }
-
-
-    // Создание дома
-    public void createHome(String homeName, RepositoryCallback<HomeResponse> callback) {
-
-        HomeCreateRequest request = new HomeCreateRequest(homeName);
-
-        apiService.createHome(request)
-                .enqueue(new Callback<HomeResponse>() {
-
-                    @Override
-                    public void onResponse(
-                            Call<HomeResponse> call,
-                            Response<HomeResponse> response
+                            Call<Device> call,
+                            Response<Device> response
                     ) {
                         if (response.isSuccessful() && response.body() != null) {
-                            callback.onSuccess(response.body());
+                            future.complete(response.body());
                         } else {
-                            callback.onError("Ошибка создания дома: " + response.code());
+                            future.completeExceptionally(
+                                    new RuntimeException(
+                                            "Ошибка создания устройства: " + response.code()
+                                    )
+                            );
                         }
                     }
 
                     @Override
-                    public void onFailure(Call<HomeResponse> call, Throwable t) {
-                        callback.onError("Ошибка сети: " + t.getMessage());
+                    public void onFailure(Call<Device> call, Throwable t) {
+                        Log.e(TAG, "createDevice failed", t);
+                        future.completeExceptionally(t);
                     }
                 });
+
+        return future;
     }
 
+    /**
+     * Управление устройством
+     * POST /api/devices/{device_id}/action?new_state=...
+     */
+    public CompletableFuture<Map<String, Object>> controlDevice(
+            int deviceId,
+            String newState
+    ) {
+        CompletableFuture<Map<String, Object>> future = new CompletableFuture<>();
 
-    // Проверка соединения с сервером
-    public CompletableFuture<Map<String, String>> pingServer() {
-        CompletableFuture<Map<String, String>> future = new CompletableFuture<>();
+        if (!isAuthenticated()) {
+            future.completeExceptionally(
+                    new IllegalStateException("Пользователь не авторизован")
+            );
+            return future;
+        }
 
-        apiService.ping().enqueue(new Callback<Map<String, String>>() {
-            @Override
-            public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
-                if (response.isSuccessful()) {
-                    future.complete(response.body());
-                } else {
-                    future.completeExceptionally(new Exception("Сервер недоступен: " + response.code()));
-                }
-            }
+        apiService.controlDevice(deviceId, newState)
+                .enqueue(new Callback<Map<String, Object>>() {
+                    @Override
+                    public void onResponse(
+                            Call<Map<String, Object>> call,
+                            Response<Map<String, Object>> response
+                    ) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            future.complete(response.body());
+                        } else {
+                            future.completeExceptionally(
+                                    new RuntimeException(
+                                            "Ошибка управления устройством: " + response.code()
+                                    )
+                            );
+                        }
+                    }
 
-            @Override
-            public void onFailure(Call<Map<String, String>> call, Throwable t) {
-                future.completeExceptionally(new Exception("Ошибка сети: " + t.getMessage()));
-            }
-        });
+                    @Override
+                    public void onFailure(Call<Map<String, Object>> call, Throwable t) {
+                        Log.e(TAG, "controlDevice failed", t);
+                        future.completeExceptionally(t);
+                    }
+                });
 
         return future;
     }
