@@ -1,0 +1,22 @@
+mqtt:
+  broker: "a0f05627.ala.eu-central-1.emqxsl.com"
+  port: 8883
+  client_id: "raspberry_kitchen_1_example"
+  password: "asu-22-1b" 
+  userName: "raspberry_user"
+  keepalive: 60
+  tls_enabled: true
+
+
+devices:
+  living_room_light:
+    type: "led"
+    pin: 17
+    name: "Свет в гостиной"
+    mqtt_topic: "home/living_room/light"
+    
+  temperature_sensor:
+    type: "sensor"
+    pin: 4
+    name: "Датчик температуры"
+    mqtt_topic: "home/living_room/temperature"
