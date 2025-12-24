@@ -14,8 +14,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.project.smarthome.R;
 import com.project.smarthome.api.ApiClient;
+import com.project.smarthome.api.ApiService;
 import com.project.smarthome.models.Automation;
 import com.project.smarthome.adapters.AutomationAdapter;
+import com.project.smarthome.models.EnableAutomationRequest;
+import com.project.smarthome.models.EnableAutomationResponse;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -59,7 +63,7 @@ public class AutomationFragment extends Fragment {
 
     private void loadAutomations() {
         ApiClient.initialize(requireContext());
-        com.project.smarthome.api.ApiService apiService =
+        ApiService apiService =
                 ApiClient.getApiService(requireContext());
 
         Call<List<Automation>> call = apiService.getAutomations();
@@ -84,19 +88,19 @@ public class AutomationFragment extends Fragment {
 
     private void toggleAutomation(Automation automation) {
         ApiClient.initialize(requireContext());
-        com.project.smarthome.api.ApiService apiService =
+        ApiService apiService =
                 ApiClient.getApiService(requireContext());
 
-        com.project.smarthome.api.EnableAutomationRequest request =
-                new com.project.smarthome.api.EnableAutomationRequest(!automation.isEnabled());
+        EnableAutomationRequest request =
+                new EnableAutomationRequest(!automation.isEnabled());
 
-        Call<com.project.smarthome.api.EnableAutomationResponse> call =
+        Call<EnableAutomationResponse> call =
                 apiService.toggleAutomation(automation.getId(), request);
 
-        call.enqueue(new Callback<com.project.smarthome.api.EnableAutomationResponse>() {
+        call.enqueue(new Callback<EnableAutomationResponse>() {
             @Override
-            public void onResponse(Call<com.project.smarthome.api.EnableAutomationResponse> call,
-                                   Response<com.project.smarthome.api.EnableAutomationResponse> response) {
+            public void onResponse(Call<EnableAutomationResponse> call,
+                                   Response<EnableAutomationResponse> response) {
                 if (response.isSuccessful()) {
                     automation.setEnabled(!automation.isEnabled());
                     adapter.notifyDataSetChanged();
@@ -108,7 +112,7 @@ public class AutomationFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<com.project.smarthome.api.EnableAutomationResponse> call, Throwable t) {
+            public void onFailure(Call<EnableAutomationResponse> call, Throwable t) {
                 Toast.makeText(getContext(), "Ошибка сети: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

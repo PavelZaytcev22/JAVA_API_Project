@@ -26,6 +26,10 @@ public class HomeRepository {
         this.sharedPrefManager = sharedPrefManager;
     }
 
+    public HomeRepository() {
+
+    }
+
     /**
      * Получение списка домов текущего пользователя
      */

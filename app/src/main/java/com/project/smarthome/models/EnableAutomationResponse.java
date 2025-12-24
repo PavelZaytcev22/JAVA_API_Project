@@ -1,6 +1,6 @@
 package com.project.smarthome.models;
 
-class EnableAutomationResponse {
+public class EnableAutomationResponse {
     private String status;
     private int automation;
     private boolean enabled;

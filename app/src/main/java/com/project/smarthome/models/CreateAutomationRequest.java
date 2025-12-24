@@ -1,6 +1,6 @@
 package com.project.smarthome.models;
 
-class CreateAutomationRequest {
+public class CreateAutomationRequest {
     private String name;
     private String trigger_type;
     private String trigger_value;

@@ -1,5 +1,5 @@
 package com.project.smarthome.models;
-class EnableAutomationRequest {
+public class EnableAutomationRequest {
     private boolean enabled;
 
     public EnableAutomationRequest(boolean enabled) {

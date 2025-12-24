@@ -27,6 +27,10 @@ public class RoomRepositoryImpl implements RoomRepository {
         this.sharedPrefManager = SharedPrefManager.getInstance(context);
     }
 
+    public RoomRepositoryImpl() {
+
+    }
+
     /* ===== Загрузка комнат ===== */
 
     @Override

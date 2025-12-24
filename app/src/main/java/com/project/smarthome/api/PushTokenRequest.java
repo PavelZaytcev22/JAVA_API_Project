@@ -17,6 +17,5 @@ public class PushTokenRequest {
     public String getDevice_name() { return device_name; }
 }
 
-// ApiResponse.java
-package com.project.smarthome.api;
+
 

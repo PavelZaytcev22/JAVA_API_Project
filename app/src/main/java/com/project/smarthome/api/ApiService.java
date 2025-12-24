@@ -2,6 +2,7 @@ package com.project.smarthome.api;
 
 import com.project.smarthome.models.Automation;
 import com.project.smarthome.models.CreateAutomationRequest;
+import com.project.smarthome.models.EnableAutomationRequest;
 import com.project.smarthome.models.EnableAutomationResponse;
 import com.project.smarthome.models.auth.*;
 import com.project.smarthome.models.devices.*;
